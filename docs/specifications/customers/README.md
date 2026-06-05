@@ -573,3 +573,105 @@ Ao bloquear:
 Este módulo é considerado o núcleo do sistema.
 
 Novos módulos devem sempre avaliar impacto e integração com o cadastro de clientes antes de sua implementação.
+
+---
+
+# Implementação (mock-first)
+
+> Esta seção registra o que já foi construído, seguindo a arquitetura
+> corporativa (domain → data mock-first → presentation) usada nos demais módulos.
+
+## Fase 1 — Listagem + Detalhe (Aba Principal) — concluída
+
+Módulo `src/modules/customers`. Rotas `/clientes` e `/clientes/[id]`.
+
+- **Domínio:** `Customer` (+ `Address`, `Contact`, `ContractSummary`,
+  `Representation`, `PaymentMethod`); enums `PersonType`, `CustomerStatus`,
+  `ContractSignStatus`; regras puras em `CustomerRules`:
+  - `paymentDay(dataContrato)` — dia de pagamento automático (05/10/15/20);
+  - `canReleaseKeys(signStatus)` — chaves/ferramentas só com contrato assinado.
+- **Dados (mock):** `MockCustomerProvider` (latência ~500 ms) sobre
+  `mock-customers` (PF e PJ, todas as situações e escopos).
+- **Aplicação:** `ListCustomersUseCase` aplica a visibilidade por **escopo de
+  acesso** (multiempresa): global = todos; franchise = `franchiseId`;
+  representative = `representativeId`; técnico/cliente = fora do escopo.
+  `GetCustomerUseCase` carrega por id.
+- **Listagem (`/clientes`):** largura total, KPIs por situação, busca + filtros
+  em dropdown (status, plano, cidade, situação financeira) + "Limpar filtros",
+  ordenação e paginação, com estados de loading/vazio/erro. **Tabela** no
+  desktop (Cliente · Contato · Cidade · Plano · Licenças · Mensalidade ·
+  Financeiro · Situação · Último atend. · Ações) e **cards** no mobile; a linha
+  navega para o detalhe. "Novo cliente" é **gated** por `clients.edit`. Espelha
+  `docs/screens/custumers_screen.png`.
+- **Detalhe (`/clientes/[id]`):** cabeçalho com avatar, identidade, badges e
+  ações; faixa de **chips** (contratos, licenças, mensalidade, próximo pagamento,
+  chamados, situação financeira); abas **todas implementadas** (mock-first):
+  - **Visão geral** — dados básicos, endereço (com mapa), representação, forma de
+    pagamento, contatos, contrato/licenciamento (status de liberação de chaves) e
+    resumo financeiro;
+  - **Comercial** — contrato vigente com barra de licenciamento, **aditivos**
+    (impacto +/− no valor), **ferramentas adicionais** (ativa/valor/licenças) e
+    representação;
+  - **Financeiro** — resumo (mensalidade, recebido, em aberto, situação) e tabela
+    de **faturas/cobranças** (competência, vencimento, pagamento, status);
+  - **Suporte** — indicadores (abertos/em andamento/resolvidos) e lista de
+    **chamados** (prioridade, canal, responsável);
+  - **Integrações** — **servidores** (hostname/porta/banco/ambiente/versão/
+    atualização) e **APIs** (clientId + segredo mascarado); liberadas apenas com
+    contrato assinado (regra de chaves);
+  - **Administração** — **sócios** (PJ), **instalações**, **histórico** (timeline),
+    **anotações internas** e **bloqueio** (motivo/responsável/data).
+
+Campos novos no model: `financialStatus`, `openTickets`, `lastServiceLabel` e as
+áreas do detalhe (`amendments`, `tools`, `partners`, `integrations`,
+`apiCredentials`, `installations`, `history`, `notes`, `block`, `invoices`,
+`tickets`) — opcionais, preenchidas no detalhe por um **gerador determinístico**
+(`data/mocks/mock-customer-details`) que deriva listas plausíveis do próprio
+cliente; o provider enriquece em `getCustomerById`. Compartilhados novos:
+`helpers/format` (moeda/datas pt-BR), `tones.TONE_SOFT` (pílulas) e primitivos de
+detalhe reutilizáveis (`presentation/widgets/customer-detail-ui`:
+`Section`/`Field`/`TonePill`/`EmptyHint`/`MapPlaceholder`). Permissão da tela:
+`clients.view`; ações de escrita: `clients.edit`.
+
+## Fase 2 — CRUD (cadastro/edição) — concluída
+
+Rotas `/clientes/novo` (create) e `/clientes/[id]/editar` (edit), ambas pela
+mesma `CustomerFormPage` (modo `create`/`edit`). **Persistência mock em memória**:
+as escritas mutam o array `MOCK_CUSTOMERS` (refletem na listagem/detalhe na
+sessão; somem ao recarregar).
+
+- **Domínio:** `CustomerInput` (campos editáveis) + `CustomerRules.validateInput`
+  (validação pura: obrigatórios da Aba Principal, tamanho de CPF/CNPJ por tipo de
+  pessoa, ao menos um contato, plano/contrato obrigatórios).
+- **Aplicação:** `CreateCustomerUseCase` / `UpdateCustomerUseCase` — **gated** por
+  `clients.edit` e revalidam como guarda antes de persistir.
+- **Dados:** `CustomerProvider.createCustomer/updateCustomer` no `MockCustomerProvider`
+  geram `id`/`código`/`createdAt`, **rejeitam documento duplicado**
+  (`customers/duplicate-document`) e mutam o array compartilhado.
+- **Formulário:** dados básicos (toggle PF/PJ, rótulos de documento/IE-RG
+  dinâmicos), endereço com **consulta automática de CEP** (ViaCEP via
+  `shared/helpers/cep`, falha graciosa), **contatos múltiplos** (add/remover),
+  forma de pagamento + situação, contrato (plano, modalidade, datas, assinatura,
+  computadores, mensalidade; **dia de pagamento somente leitura**, derivado) e
+  representação. Erros por campo inline, barra de ações fixa (Cancelar/Salvar),
+  estados de loading/sem-permissão/não-encontrado. "Novo cliente" (listagem) e
+  "Editar cliente" (detalhe) levam às rotas.
+
+## Próximas fases (roadmap)
+
+Plugam no mesmo `Customer`/detalhe, sem refatoração estrutural:
+
+1. **Exclusão / bloqueio** com persistência (motivo/responsável/data) e
+   confirmação; dados adicionais PF e sócios PJ no formulário.
+2. **Assinatura D4Sign** real no fluxo de contrato (hoje os estados de assinatura
+   são mockados).
+3. **Pedidos** (somente leitura + geolocalização) como nova aba.
+4. Troca dos dados mock (listagem, abas do detalhe e escrita) pelo provider real
+   (mappers por área), aposentando `mock-customer-details` e a mutação em memória.
+
+## Integração Real
+
+Trocar `MockCustomerProvider` por `ApiCustomerProvider` + mapper em
+`customer-factory.ts`. Com API real, busca/ordenação/paginação migram para
+parâmetros do provider (server-side); a store passa a refletir a página vinda do
+backend.

@@ -40,6 +40,26 @@ substituído por um provider de API + mapper sem impacto nas camadas acima.
 
 ---
 
+## ADR-006 — UI controlada por permissão + app shell reutilizável
+
+**Contexto:** a tela principal (`docs/screens/home-layout.md`) exige menus,
+widgets e botões controlados por permissão, com layout responsivo (navbar + menu
+lateral + dashboard). O backend fornecerá as permissões do usuário.
+**Decisão:** centralizar a verificação de acesso em `PermissionExt.has()`
+(`@/shared/extensions`), com coringa global `"*"` e por prefixo `"area.*"`. A
+filtragem é **regra de aplicação** (UseCase `GetDashboardUseCase` e função
+`buildNavigation`), nunca na presentation. O menu é configuração de produto local
+(não vem da API); apenas as permissões vêm do usuário. O shell (navbar + menu) é
+um `AppShell` reutilizável; o estado de layout (expandir/recolher, drawer) vive em
+`LayoutStore`. Ícones são referidos por chave estável (`IconKey`) para manter
+domain/data livres de componentes de UI.
+**Consequências:** novo módulo `src/modules/home`. Itens de módulos ainda
+inexistentes aparecem sem `href` (placeholder, sem 404). O guard de acesso é
+client-side (restaura sessão; sem sessão → login), coerente com o ADR-005; um
+guard de servidor será avaliado com a sessão real.
+
+---
+
 ## ADR-005 — Persistência de sessão provisória (local) + e-mail lembrado
 
 **Contexto:** a opção "Manter acesso" e o pré-preenchimento do e-mail eram
