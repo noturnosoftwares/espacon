@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+ * HelpDesk — Dark First.
+ * Paleta oficial da Noturno exposta como tokens Tailwind (`bg-noturno-*`,
+ * `text-noturno-*`, etc.). Fonte única dos valores: a mesma paleta de
+ * src/shared/design-system/colors.ts. NUNCA usar cores fora desta paleta.
+ */
+
+@theme {
+  --color-noturno-orange: #ffb621;
+  --color-noturno-orange-dark: #ff9500;
+
+  --color-noturno-white: #ffffff;
+
+  --color-noturno-grey-light: #999999;
+  --color-noturno-grey-light-clean: #d9d9d9;
+  --color-noturno-grey-light-clean-2: #27272a;
+  --color-noturno-grey-light-clean-3: #3f3f47;
+  --color-noturno-grey-dark: #2e2f36;
+
+  --color-noturno-black: #040404;
+  --color-noturno-black-2: #1c1c1c;
+  --color-noturno-black-3: #111820;
+  --color-noturno-black-secondary: #131417;
+
+  --color-noturno-red: #ff2626;
+  --color-noturno-yellow: #ffda0c;
+
+  --color-noturno-green: #00ba81;
+  --color-noturno-green-light: #96d544;
+
+  --color-noturno-blue: #036ae3;
+  --color-noturno-blue-dark: #3fa5ee;
+  --color-noturno-blue-light: #21a5ee;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Animações discretas */
+  --animate-fade-in: fade-in 0.6s ease-out both;
+  --animate-slide-up: slide-up 0.6s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-noturno-black);
+  color: var(--color-noturno-white);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
