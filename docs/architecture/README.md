@@ -3,10 +3,11 @@
 > Regras corporativas (camadas, mock-first, AsyncResult, mappers, stores,
 > extensions/helpers, classificação de reuso) vivem no template
 > `../noturno-web-template`. Este documento registra apenas a arquitetura
-> **específica** do HelpDesk e como o template é aplicado aqui.
+> **específica** do EspaçoN e como o template é aplicado aqui.
 
 ## Stack
 
+<<<<<<< HEAD
 Vue.js 3.5
 Vite
 TypeScript
@@ -15,6 +16,17 @@ Tailwind CSS
 Composition API
 Pinia
 Vue Router
+=======
+- Vue.js 3.5
+- Vite
+- TypeScript
+- PrimeVue UI
+- Tailwind CSS
+- Composition API
+- Pinia
+- Vue Router
+- Tailwind v4 (configuração CSS-first via `@theme` em `src/app/globals.css`)
+>>>>>>> e153f1a (backup)
 - Sem backend no projeto (frontend desacoplado; comunicação futura via REST)
 
 ## Estrutura de pastas (`src/`)
