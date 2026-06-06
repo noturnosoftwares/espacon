@@ -1,14 +1,14 @@
-# HelpDesk
+# EspaçoN
 
 ## Projeto
 
-HelpDesk é a plataforma de gestão da Noturno Softwares.
+EspaçoN é a plataforma de gestão da Noturno Softwares.
 
 O sistema centraliza toda a operação administrativa, comercial, financeira, técnica e operacional da empresa.
 
 O objetivo é criar uma plataforma moderna, escalável, documentada e preparada para evolução durante muitos anos.
 
-Este documento contém **apenas regras específicas do HelpDesk**. As regras corporativas (arquitetura, camadas, fluxo, mock-first, AsyncResult, models, mappers, extensions/helpers, classificação de reuso, Design System, qualidade, documentação) vivem no template corporativo e não são repetidas aqui.
+Este documento contém **apenas regras específicas do EspaçoN**. As regras corporativas (arquitetura, camadas, fluxo, mock-first, AsyncResult, models, mappers, extensions/helpers, classificação de reuso, Design System, qualidade, documentação) vivem no template corporativo e não são repetidas aqui.
 
 ---
 
@@ -19,17 +19,17 @@ Este projeto herda os padrões da Noturno Softwares através do template corpora
 Antes de qualquer implementação, a IA deve ler obrigatoriamente:
 
 ```txt
-../noturno-web-template/CLAUDE.md
-../noturno-web-template/docs/architecture/README.md
-../noturno-web-template/docs/decisions/README.md
-../noturno-web-template/docs/specifications/README.md
+../template/CLAUDE.md
+../template/docs/architecture/README.md
+../template/docs/decisions/README.md
+../template/docs/specifications/README.md
 ```
 
-O template é a fonte das regras corporativas. O HelpDesk não as duplica — apenas as referencia e, quando necessário, as especializa.
+O template é a fonte das regras corporativas. O EspaçoN não as duplica — apenas as referencia e, quando necessário, as especializa.
 
 ## Disponibilidade do Template
 
-Local esperado: `../noturno-web-template`.
+Local esperado: `../template`.
 
 Caso o template não esteja disponível:
 
@@ -41,8 +41,8 @@ Caso o template não esteja disponível:
 
 # Ordem de Prioridade
 
-1. Regras deste projeto (HelpDesk)
-2. Template corporativo (noturno-web-template)
+1. Regras deste projeto (EspaçoN)
+2. Template corporativo (template)
 3. Documentação deste projeto
 4. Boas práticas consolidadas do mercado
 5. Documentação oficial das tecnologias
@@ -65,7 +65,7 @@ Nenhuma implementação deve iniciar apenas com base em suposições. Nunca assu
 
 # Escopo do Sistema (Multiempresa)
 
-O HelpDesk opera em estrutura de matriz e franquias. Nenhuma implementação deve assumir ambiente único.
+O EspaçoN opera em estrutura de matriz e franquias. Nenhuma implementação deve assumir ambiente único.
 
 O sistema deve suportar, desde o início:
 
@@ -113,7 +113,7 @@ Base de Conhecimento, Documentação, Ajuda.
 
 # Decisões de Produto
 
-Decisões arquiteturais específicas do HelpDesk são registradas em `docs/decisions`. As principais:
+Decisões arquiteturais específicas do EspaçoN são registradas em `docs/decisions`. As principais:
 
 * **Dark First** — o sistema nasce em tema escuro usando a paleta oficial da Noturno. Modo Light poderá ser avaliado futuramente. (A paleta é corporativa; a escolha do tema é do produto.)
 * **Multiempresa desde o início** — `accessScope` e vínculos de franquia/representante no model de usuário.
@@ -142,7 +142,7 @@ Funcionalidade relevante não é concluída sem documentação, especificação 
 
 # Interface
 
-A interface segue o Design System da Noturno (paleta oficial — definida no template) e os padrões visuais do HelpDesk documentados em `docs/ui`.
+A interface segue o Design System da Noturno (paleta oficial — definida no template) e os padrões visuais do EspaçoN documentados em `docs/ui`.
 
 Padrões do produto: tema dark, cards, ícones, responsividade; grids com filtro, ordenação, paginação, loading, estado vazio e erro.
 
