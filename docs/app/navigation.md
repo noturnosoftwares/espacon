@@ -78,9 +78,9 @@ Os menus podem existir visualmente antes da implementação das telas.
 
 Funcionalidades não implementadas devem indicar que estão em desenvolvimento.
 
-## Status: implementado (mock)
+## Status: especificado — a implementar (Fase 3)
 
-O menu lateral responsivo está implementado na tela principal (`/dashboard`),
+O menu lateral responsivo ficará na tela principal (`/dashboard`),
 seguindo a **Estrutura Inicial dos Menus** de `docs/screens/home-layout.md`
 (Dashboard, Clientes, Atendimento, Financeiro, Administração, Ajuda). Os menus
 acima ("Menus previstos") representam a visão ampla/futura e serão incorporados
@@ -89,5 +89,5 @@ conforme os módulos forem criados.
 * Cada grupo/item é exibido conforme a permissão do usuário (ADR-006).
 * Itens de módulos ainda não implementados aparecem inertes ("em breve"), sem
   navegação (evita 404) — atende à regra acima.
-* Configuração do menu: `src/modules/home/data/mocks/mock-nav.ts`.
+* Configuração do menu (prevista): `src/modules/home/data/mocks/mock-nav.ts`.
 * Especificação: `docs/specifications/home/README.md`.

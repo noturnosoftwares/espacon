@@ -31,22 +31,21 @@ A tela de login deve possuir:
 * Não acessar API diretamente na tela.
 * Erros devem usar AsyncResult.
 
-## Status: implementado (mock)
+## Status: especificado — a implementar (Fase 2)
 
-A tela inicial institucional integrada ao login está implementada na rota `/`
+A tela inicial institucional integrada ao login ficará na rota `/`
 (ver especificação em `docs/specifications/auth`). Após o login, redireciona para
-`/dashboard` — a tela principal (home) já implementada (ver
-`docs/specifications/home`).
+`/dashboard` — a tela principal (home) (ver `docs/specifications/home`).
 
-Recursos da tela de login — todos implementados (mock):
+Recursos previstos da tela de login (mock-first):
 
 | Recurso                       | Status        | Detalhe                                            |
 | ----------------------------- | ------------- | -------------------------------------------------- |
-| E-mail / senha                | ✅ mock       | credencial fixa abaixo                             |
-| Mostrar/ocultar senha         | ✅            | `PasswordField`                                    |
-| Botão de entrar               | ✅            | estados de loading/erro                            |
-| **Manter acesso**             | ✅ mock local | persiste sessão (ver Sessão; ADR-005)              |
-| **Recuperar senha**           | ✅ mock       | rota `/recuperar-senha` (ver Recuperar senha)      |
+| E-mail / senha                | ⬜ mock       | credencial fixa abaixo                             |
+| Mostrar/ocultar senha         | ⬜            | `PasswordField`                                    |
+| Botão de entrar               | ⬜            | estados de loading/erro                            |
+| **Manter acesso**             | ⬜ mock local | persiste sessão (ver Sessão; ADR-005)              |
+| **Recuperar senha**           | ⬜ mock       | rota `/recuperar-senha` (ver Recuperar senha)      |
 
 ### Credencial mockada
 
@@ -57,7 +56,7 @@ Recursos da tela de login — todos implementados (mock):
 Qualquer outra combinação retorna erro de autenticação via `AsyncResult`
 ("E-mail ou senha inválidos."), exibido no formulário.
 
-### Fluxo implementado
+### Fluxo previsto
 
 ```txt
 LoginPage → AuthStore → LoginUseCase → AuthRepositoryImpl → MockAuthProvider → AsyncResult
@@ -66,7 +65,7 @@ LoginPage → AuthStore → LoginUseCase → AuthRepositoryImpl → MockAuthProv
 * `AuthStore` estende apenas `BaseStore` (login não é CRUD); instância por tela.
 * Composição via factory explícita `makeLoginUseCase()` (sem DI global).
 * Sessão definitiva (token via API) deferida (ver ADR-003); persistência local
-  provisória implementada (ver ADR-005).
+  provisória (ver ADR-005).
 
 ## Recuperar senha (mock)
 
@@ -93,14 +92,14 @@ para pré-preencher o próximo acesso. Ao abrir o login com sessão salva, o usu
 
 Especificação: `docs/specifications/auth/session.md`.
 
-### Arquivos
+### Arquivos (previstos — Vue)
 
 * Módulo: `src/modules/auth/`
-* Login: `src/modules/auth/presentation/pages/login-page.tsx` (rota `src/app/page.tsx`)
-* Recuperar senha: `src/modules/auth/presentation/pages/password-recovery-page.tsx`
-  (rota `src/app/recuperar-senha/page.tsx`)
+* Login: `src/modules/auth/presentation/pages/login-page.vue` (rota `/` em `src/router`)
+* Recuperar senha: `src/modules/auth/presentation/pages/password-recovery-page.vue`
+  (rota `/recuperar-senha` em `src/router`)
 * Sessão: `domain/repositories/session-repository.ts` +
   `data/repositories/session-repository-impl.ts`
 * Storage compartilhado: `src/shared/storage/key-value-store.ts`
 * Validação de e-mail: `src/shared/extensions/email-ext.ts`
-* Logout: menu de perfil da home (`src/modules/home/presentation/widgets/profile-menu.tsx`)
+* Logout: menu de perfil da home (`src/modules/home/presentation/widgets/profile-menu.vue`)

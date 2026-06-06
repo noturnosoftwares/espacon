@@ -1,0 +1,67 @@
+/*
+ * EspaçoN — estilos globais (Tailwind v4, CSS-first).
+ *
+ * Ordem de camadas: base do Tailwind → componentes do PrimeVue → utilitários
+ * do Tailwind. Isso garante que utilitários Tailwind (ex.: `p-4`, `bg-...`)
+ * sobreponham o estilo dos componentes PrimeVue quando aplicados.
+ */
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+/*
+ * Paleta oficial da Noturno Softwares (corporativa — não inventar cores).
+ * Exposta como tokens de tema do Tailwind → gera utilitários
+ * (ex.: text-noturno-orange, bg-noturno-black-secondary).
+ */
+@theme {
+  --color-noturno-orange: #ffb621;
+  --color-noturno-orange-dark: #ff9500;
+
+  --color-noturno-white: #ffffff;
+
+  --color-noturno-grey-light: #999999;
+  --color-noturno-grey-light-clean: #d9d9d9;
+  --color-noturno-grey-light-clean-2: #27272a;
+  --color-noturno-grey-light-clean-3: #3f3f47;
+  --color-noturno-grey-dark: #2e2f36;
+
+  --color-noturno-black: #040404;
+  --color-noturno-black-2: #1c1c1c;
+  --color-noturno-black-3: #111820;
+  --color-noturno-black-secondary: #131417;
+
+  --color-noturno-red: #ff2626;
+  --color-noturno-yellow: #ffda0c;
+
+  --color-noturno-green: #00ba81;
+  --color-noturno-green-light: #96d544;
+
+  --color-noturno-blue: #036ae3;
+  --color-noturno-blue-dark: #3fa5ee;
+  --color-noturno-blue-light: #21a5ee;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  background: var(--color-noturno-black-secondary);
+  color: var(--color-noturno-white);
+}
