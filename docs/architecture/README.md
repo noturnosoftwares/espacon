@@ -1,4 +1,4 @@
-# Arquitetura — HelpDesk
+# Arquitetura — EspaçoN
 
 > Regras corporativas (camadas, mock-first, AsyncResult, mappers, stores,
 > extensions/helpers, classificação de reuso) vivem no template
@@ -7,8 +7,14 @@
 
 ## Stack
 
-- Next.js 16 (App Router, Turbopack) · React 19 · TypeScript (strict)
-- Tailwind v4 (configuração CSS-first via `@theme` em `src/app/globals.css`)
+Vue.js 3.5
+Vite
+TypeScript
+PrimeVue UI
+Tailwind CSS
+Composition API
+Pinia
+Vue Router
 - Sem backend no projeto (frontend desacoplado; comunicação futura via REST)
 
 ## Estrutura de pastas (`src/`)
