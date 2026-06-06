@@ -31,21 +31,24 @@ A tela de login deve possuir:
 * Não acessar API diretamente na tela.
 * Erros devem usar AsyncResult.
 
-## Status: especificado — a implementar (Fase 2)
+## Status: tela de login implementada (Fase 2 — mock-first)
 
-A tela inicial institucional integrada ao login ficará na rota `/`
-(ver especificação em `docs/specifications/auth`). Após o login, redireciona para
-`/dashboard` — a tela principal (home) (ver `docs/specifications/home`).
+A tela inicial institucional integrada ao login está na rota `/`
+(ver especificação em `docs/specifications/auth/login.md`). Após o login,
+redireciona para `/dashboard` — a tela principal (home) (ver
+`docs/specifications/home`), hoje em placeholder até sua spec.
 
-Recursos previstos da tela de login (mock-first):
+Recursos da tela de login (mock-first):
 
 | Recurso                       | Status        | Detalhe                                            |
 | ----------------------------- | ------------- | -------------------------------------------------- |
-| E-mail / senha                | ⬜ mock       | credencial fixa abaixo                             |
-| Mostrar/ocultar senha         | ⬜            | `PasswordField`                                    |
-| Botão de entrar               | ⬜            | estados de loading/erro                            |
-| **Manter acesso**             | ⬜ mock local | persiste sessão (ver Sessão; ADR-005)              |
-| **Recuperar senha**           | ⬜ mock       | rota `/recuperar-senha` (ver Recuperar senha)      |
+| E-mail / senha                | ✅ mock       | credencial fixa abaixo                             |
+| Mostrar/ocultar senha         | ✅            | toggle no campo de senha                           |
+| Botão de entrar               | ✅            | estados de loading/erro                            |
+| **Lembrar e-mail**            | ✅ mock local | pré-preenche o próximo acesso (nunca a senha)      |
+| **Manter acesso**             | ✅ mock local | persiste sessão (ver Sessão; ADR-005)              |
+| **Recuperar senha**           | 🔗 link       | navega para `/recuperar-senha` (spec própria)      |
+| Vitrine institucional         | ✅ mock       | mapa/contadores/institucional agregados (ADR-007)  |
 
 ### Credencial mockada
 

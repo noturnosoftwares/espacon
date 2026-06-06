@@ -1,0 +1,17 @@
+export { default as NavigationTile } from './navigation-tile.vue'
+export { default as AppSidebar } from './app-sidebar.vue'
+export { default as GlobalSearch } from './global-search.vue'
+export { default as NotificationsButton } from './notifications-button.vue'
+export { default as ProfileMenu } from './profile-menu.vue'
+export { default as AppHeader } from './app-header.vue'
+export { default as HomeWorkspace } from './home-workspace.vue'
+
+// Dashboard (painel inicial)
+export { default as DashboardCard } from './dashboard-card.vue'
+export { default as DashboardGreeting } from './dashboard-greeting.vue'
+export { default as KpiCard } from './kpi-card.vue'
+export { default as FavoritesCard } from './favorites-card.vue'
+export { default as RecentAccessCard } from './recent-access-card.vue'
+export { default as PendingsCard } from './pendings-card.vue'
+export { default as ActivitiesCard } from './activities-card.vue'
+export { default as NetworkStatusCard } from './network-status-card.vue'

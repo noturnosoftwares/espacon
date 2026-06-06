@@ -78,16 +78,19 @@ Os menus podem existir visualmente antes da implementação das telas.
 
 Funcionalidades não implementadas devem indicar que estão em desenvolvimento.
 
-## Status: especificado — a implementar (Fase 3)
+## Status: sidebar implementada (Fase 3 — mock-first)
 
-O menu lateral responsivo ficará na tela principal (`/dashboard`),
-seguindo a **Estrutura Inicial dos Menus** de `docs/screens/home-layout.md`
-(Dashboard, Clientes, Atendimento, Financeiro, Administração, Ajuda). Os menus
-acima ("Menus previstos") representam a visão ampla/futura e serão incorporados
-conforme os módulos forem criados.
+O menu lateral está na tela principal (`/dashboard`), como **Sidebar** de
+`NavigationTile` (ícone em destaque acima, rótulo abaixo, profundidade, "L"
+laranja no ativo). Grupos abrem em acordeão (abrir um recolhe os demais) com
+sub-itens em mini-cards; scrollbar fina na identidade Noturno. Ordem dos grupos:
+Início, Sistema, Atendimento, Financeiro, Compra, Frota, Pessoal, Imobiliário,
+Ajuda — com Início navegável e os demais inertes ("em breve") até cada módulo
+existir.
 
-* Cada grupo/item é exibido conforme a permissão do usuário (ADR-006).
+* Cada grupo/item é exibido conforme a permissão do usuário (ADR-006) — a aplicar
+  quando os módulos forem criados.
 * Itens de módulos ainda não implementados aparecem inertes ("em breve"), sem
-  navegação (evita 404) — atende à regra acima.
-* Configuração do menu (prevista): `src/modules/home/data/mocks/mock-nav.ts`.
+  navegação (evita 404).
+* Configuração do menu: `src/modules/home/data/mocks/mock-nav.ts`.
 * Especificação: `docs/specifications/home/README.md`.

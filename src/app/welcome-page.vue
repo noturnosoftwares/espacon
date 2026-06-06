@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
- * Placeholder temporário da Fase 0.
- * Será substituído pela tela de login (Fase 2) na rota `/`.
+ * Placeholder de fundação. A rota `/` agora é a tela de login (Fase 2); esta
+ * página é reutilizada **provisoriamente** por `/dashboard` e `/recuperar-senha`
+ * até suas specs (home e password-recovery) serem implementadas.
  */
 </script>
 

@@ -65,3 +65,26 @@ body {
   background: var(--color-noturno-black-secondary);
   color: var(--color-noturno-white);
 }
+
+/*
+ * Scrollbar fina na identidade Noturno (cinza em repouso, dourado ao passar o
+ * mouse). Aplicar a classe `.scrollbar-noturno` em áreas roláveis (ex.: menu).
+ */
+.scrollbar-noturno {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-noturno-grey-light-clean-3) transparent;
+}
+.scrollbar-noturno::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-noturno::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-noturno::-webkit-scrollbar-thumb {
+  background: var(--color-noturno-grey-light-clean-3);
+  border-radius: 9999px;
+}
+.scrollbar-noturno:hover::-webkit-scrollbar-thumb {
+  background: var(--color-noturno-orange-dark);
+}
