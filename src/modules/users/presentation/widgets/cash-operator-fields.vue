@@ -8,7 +8,7 @@
  */
 import { computed } from 'vue'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { BaseSelect, BaseTextField, FormField, FormSection } from '@/shared/widgets'
+import { BaseSelect, BaseTextField, FormSection } from '@/shared/widgets'
 import {
   type CashOperator,
   CashOperatorType,
@@ -63,14 +63,13 @@ const codeMissing = computed(() => isLimited.value && !props.modelValue.operator
     </label>
 
     <div v-if="isOperator" class="mt-4 grid gap-x-5 gap-y-4 sm:grid-cols-2">
-      <FormField label="Tipo de operador">
-        <BaseSelect
-          v-model="type"
-          :options="TYPE_OPTIONS"
-          option-label="label"
-          option-value="value"
-        />
-      </FormField>
+      <BaseSelect
+        v-model="type"
+        label="Tipo de operador"
+        :options="TYPE_OPTIONS"
+        option-label="label"
+        option-value="value"
+      />
 
       <BaseTextField
         v-if="isLimited"

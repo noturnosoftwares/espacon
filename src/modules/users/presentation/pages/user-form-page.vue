@@ -25,7 +25,6 @@ import {
   BaseSelect,
   BaseTextField,
   ConfirmDialog,
-  FormField,
   FormSection,
   LookupField,
   PageContainer,
@@ -379,22 +378,21 @@ function onCancelDiscard(): void {
               @open="onOpenEmployeeSearch"
               @update:model-value="(v) => (employeeId = v != null ? Number(v) : null)"
             />
-            <FormField label="Papel">
-              <BaseSelect
-                v-model="role"
-                :options="ROLE_OPTIONS"
-                option-label="label"
-                option-value="value"
-              />
-            </FormField>
-            <FormField label="Escopo de acesso" hint="Filtra os dados por matriz/franquia/representante.">
-              <BaseSelect
-                v-model="accessScope"
-                :options="SCOPE_OPTIONS"
-                option-label="label"
-                option-value="value"
-              />
-            </FormField>
+            <BaseSelect
+              v-model="role"
+              label="Papel"
+              :options="ROLE_OPTIONS"
+              option-label="label"
+              option-value="value"
+            />
+            <BaseSelect
+              v-model="accessScope"
+              label="Escopo de acesso"
+              hint="Filtra os dados por matriz/franquia/representante."
+              :options="SCOPE_OPTIONS"
+              option-label="label"
+              option-value="value"
+            />
             <label
               class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3 sm:col-span-2"
             >
