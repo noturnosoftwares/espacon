@@ -81,6 +81,10 @@ Conhecimento).
     completa.
   - **Cadastro/edição** — clique numa linha (ou **Novo usuário**). Os campos ficam
     agrupados por contexto; **Salvar/Cancelar** aparecem só quando há alteração.
+  - **Perfil (modelo)** — é um **campo de busca**: clique para abrir a pesquisa de
+    perfis e escolher um. Ao confirmar, as ações do perfil **preenchem toda a
+    matriz de permissões** do usuário (sobrescrevem o que estava marcado). O
+    perfil não concede acesso por si — apenas copia as ações.
   - **Cancelar** — se houver alterações não salvas, o sistema **pergunta antes**
     ("Cancelar alterações?"). Ao confirmar: na edição, **desfaz as alterações e
     mantém você no registro** (restaura o original); num registro novo, **volta

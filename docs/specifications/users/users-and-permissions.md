@@ -147,7 +147,11 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
   template ADR-002)/loading/erro). Sem resultados: termo destacado em vermelho
   (`#FF2626`) + botão **"Limpar pesquisa"** (limpa termo + filtros e recarrega).
 - `/usuarios/novo` e `/usuarios/:id` — formulário (dados + funcionário, Caixa,
-  Remoto, Horário, IP, seletor de Perfil, **matriz de permissões**). **Cancelar**
+  Remoto, Horário, IP, **busca de Perfil**, **matriz de permissões**). O Perfil é
+  **dado de referência do backend**, então usa **campo de busca/`LookupField`**
+  (diálogo que retorna o registro), **nunca** listbox/select (DS §9.2). Ao aplicar
+  um perfil (com confirmação), suas ações **preenchem/sobrescrevem toda a matriz**
+  do usuário (`applyProfileToUser`). **Cancelar**
   com alterações **confirma antes**; ao confirmar, em edição restaura o registro e
   permanece no detalhe, em registro novo volta à lista (template ADR-001). Falha
   de save (validação/API) dispara **toast** além do informativo no topo.

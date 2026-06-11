@@ -30,11 +30,11 @@ import {
   PageContainer,
   StickyActionBar,
 } from '@/shared/widgets'
-import { useUsersStore, useUserProfilesStore, usePermissionCatalogStore } from '../stores'
+import { useUsersStore, usePermissionCatalogStore } from '../stores'
 import {
   CashOperatorFields,
   AccessRestrictionsFields,
-  ProfileSelector,
+  ProfileLookup,
   PermissionMatrix,
 } from '../widgets'
 import type { CashOperator, UserProfile } from '../../domain/models'
@@ -43,7 +43,6 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const store = useUsersStore()
-const profilesStore = useUserProfilesStore()
 const catalog = usePermissionCatalogStore()
 
 const ROLE_OPTIONS: { label: string; value: UserRole }[] = [
@@ -72,7 +71,7 @@ const confirmedLeave = ref(false)
 const pendingRoute = ref<RouteLocationNormalized | null>(null)
 
 onMounted(async () => {
-  await Promise.all([catalog.ensureLoaded(), profilesStore.load()])
+  await catalog.ensureLoaded()
   if (isEdit.value) {
     await store.loadForEdit(Number(route.params.id))
   } else {
@@ -126,6 +125,11 @@ function onPermissions(value: Permission[]): void {
 
 function onApplyProfile(profile: UserProfile): void {
   store.applyProfile(profile)
+}
+
+/** Limpa apenas o vínculo de origem (não desfaz as ações já copiadas). */
+function onClearProfile(): void {
+  store.patch({ sourceProfileId: null })
 }
 
 // Validação mínima (§10.10): obrigatórios marcados + resumo ao submeter.
@@ -372,11 +376,11 @@ function onCancelDiscard(): void {
           @update:ip="(v) => store.patch({ ipRestriction: v })"
         />
 
-        <!-- Perfil (modelo) -->
-        <ProfileSelector
-          :profiles="profilesStore.items"
-          :loading="profilesStore.loading"
+        <!-- Perfil (modelo) — campo de busca (§9.2), não listbox. -->
+        <ProfileLookup
+          :selected-id="store.editing.sourceProfileId ?? null"
           @apply="onApplyProfile"
+          @clear="onClearProfile"
         />
 
         <!-- Permissões -->
