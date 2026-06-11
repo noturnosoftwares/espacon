@@ -20,6 +20,7 @@ import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { type AccessScope, type Permission, type UserRole } from '@/shared/access'
+import { useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
   BaseTextField,
@@ -34,7 +35,6 @@ import { useUsersStore, usePermissionCatalogStore } from '../stores'
 import {
   CashOperatorFields,
   AccessRestrictionsFields,
-  ProfileLookup,
   PermissionMatrix,
 } from '../widgets'
 import type { CashOperator, UserProfile } from '../../domain/models'
@@ -44,6 +44,7 @@ const router = useRouter()
 const toast = useToast()
 const store = useUsersStore()
 const catalog = usePermissionCatalogStore()
+const selection = useSelectionStore()
 
 const ROLE_OPTIONS: { label: string; value: UserRole }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -65,13 +66,44 @@ const submitted = ref(false)
 const askingDelete = ref(false)
 const askingCancel = ref(false)
 
+// Aplicação de perfil vinda da listagem em modo seleção (confirma a sobrescrita).
+const askingApplyProfile = ref(false)
+const pendingProfile = ref<UserProfile | null>(null)
+
 // Guarda de navegação (§9.2): sair com alteração não salva pede confirmação.
 const askingDiscard = ref(false)
 const confirmedLeave = ref(false)
 const pendingRoute = ref<RouteLocationNormalized | null>(null)
 
+/**
+ * Inicialização e **retorno da seleção de perfil** (ADR — listagem reutilizável).
+ *
+ * Como não há keep-alive, esta page **remonta** ao voltar de `/perfis`. Para não
+ * perder o formulário em andamento, se houver uma requisição de seleção desta
+ * mesma tela (`pendingFor(route.path)`) **e** a edição preservada na store for a
+ * deste registro, consumimos o resultado (aplicando o perfil quando escolhido) e
+ * **mantemos** a edição. Caso contrário, inicializamos normalmente (novo/edição).
+ */
 onMounted(async () => {
   await catalog.ensureLoaded()
+
+  const pendingId = selection.pendingFor(route.path)
+  const matchesEditing =
+    !!store.editing &&
+    (isEdit.value ? store.editing.id === Number(route.params.id) : store.isNewRecord)
+
+  // Retorno da seleção (inclui voltar pelo navegador, sem escolher): havendo uma
+  // requisição desta tela e a edição preservada, NÃO reinicializa — só aplica o
+  // perfil quando houve escolha. Preserva o formulário em andamento.
+  if (pendingId && matchesEditing) {
+    const result = selection.consume(pendingId)
+    if (result?.status === 'selected') askApplyProfile(result.data as UserProfile)
+    return
+  }
+
+  // Sem edição correspondente: limpa uma requisição órfã e inicializa normalmente.
+  if (pendingId) selection.consume(pendingId)
+
   if (isEdit.value) {
     await store.loadForEdit(Number(route.params.id))
   } else {
@@ -123,13 +155,40 @@ function onPermissions(value: Permission[]): void {
   store.setPermissions(value)
 }
 
-function onApplyProfile(profile: UserProfile): void {
-  store.applyProfile(profile)
+/**
+ * Perfil (modelo) — campo de **referência** (lookup §9.2). A busca/seleção reusa
+ * a **listagem de perfis** em modo seleção (ADR): registramos a requisição no
+ * canal compartilhado e navegamos para `/perfis?mode=select&req=<id>`. Marcamos
+ * `confirmedLeave` para a guarda de navegação não pedir descarte — o estado é
+ * preservado e voltaremos a ele.
+ */
+function openProfileSearch(): void {
+  const reqId = selection.open({ resource: 'perfis', returnTo: route.path })
+  confirmedLeave.value = true
+  void router.push({ name: 'user-profiles', query: { mode: 'select', req: reqId } })
+}
+
+/** Rótulo do perfil aplicado (resolvido pela store; fallback pelo id). */
+function profileLabel(value: string | number): string {
+  return store.sourceProfileLabel ?? `Perfil #${value}`
+}
+
+/** Abre a confirmação de sobrescrita antes de aplicar (§8.7). */
+function askApplyProfile(profile: UserProfile): void {
+  pendingProfile.value = profile
+  askingApplyProfile.value = true
+}
+
+/** Confirmada a sobrescrita: aplica o perfil (redefine a matriz). */
+function confirmApplyProfile(): void {
+  if (pendingProfile.value) store.applyProfile(pendingProfile.value)
+  askingApplyProfile.value = false
+  pendingProfile.value = null
 }
 
 /** Limpa apenas o vínculo de origem (não desfaz as ações já copiadas). */
 function onClearProfile(): void {
-  store.patch({ sourceProfileId: null })
+  store.clearProfile()
 }
 
 // Validação mínima (§10.10): obrigatórios marcados + resumo ao submeter.
@@ -376,12 +435,23 @@ function onCancelDiscard(): void {
           @update:ip="(v) => store.patch({ ipRestriction: v })"
         />
 
-        <!-- Perfil (modelo) — campo de busca (§9.2), não listbox. -->
-        <ProfileLookup
-          :selected-id="store.editing.sourceProfileId ?? null"
-          @apply="onApplyProfile"
-          @clear="onClearProfile"
-        />
+        <!-- Perfil (modelo) — campo de busca (§9.2) que reusa a listagem de
+             perfis em modo seleção (ADR). Não é listbox/select. -->
+        <FormSection
+          title="Perfil (modelo de cadastro)"
+          icon="pi-clone"
+          description="Buscar e aplicar um perfil redefine todas as ações da matriz. O perfil não concede acesso por si — apenas copia as ações para o usuário."
+        >
+          <LookupField
+            :model-value="store.editing.sourceProfileId ?? null"
+            label="Perfil aplicado"
+            placeholder="Buscar perfil…"
+            hint="Ao aplicar, as ações do perfil substituem as ações marcadas na matriz."
+            :format-selected="profileLabel"
+            @open="openProfileSearch"
+            @clear="onClearProfile"
+          />
+        </FormSection>
 
         <!-- Permissões -->
         <FormSection
@@ -441,6 +511,18 @@ function onCancelDiscard(): void {
       cancelLabel="Continuar editando"
       @confirm="performCancel"
       @update:visible="(v) => (askingCancel = v)"
+    />
+
+    <!-- Aplicar perfil (§8.7): a aplicação sobrescreve as ações da matriz. -->
+    <ConfirmDialog
+      :visible="askingApplyProfile"
+      purpose="confirm"
+      title="Aplicar perfil?"
+      :message="`Isso vai preencher a matriz com as ações de “${pendingProfile?.description}”, sobrescrevendo as ações já marcadas. Deseja continuar?`"
+      confirmLabel="Aplicar"
+      confirmIcon="pi-check"
+      @confirm="confirmApplyProfile"
+      @update:visible="(v) => { if (!v) { askingApplyProfile = false; pendingProfile = null } }"
     />
 
     <!-- Guarda de navegação (§9.2): descartar alterações não salvas ao sair. -->

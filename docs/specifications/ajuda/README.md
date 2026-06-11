@@ -81,10 +81,14 @@ Conhecimento).
     completa.
   - **Cadastro/edição** — clique numa linha (ou **Novo usuário**). Os campos ficam
     agrupados por contexto; **Salvar/Cancelar** aparecem só quando há alteração.
-  - **Perfil (modelo)** — é um **campo de busca**: clique para abrir a pesquisa de
-    perfis e escolher um. Ao confirmar, as ações do perfil **preenchem toda a
-    matriz de permissões** do usuário (sobrescrevem o que estava marcado). O
-    perfil não concede acesso por si — apenas copia as ações.
+  - **Perfil (modelo)** — é um **campo de busca**: clique para abrir a **própria
+    listagem de perfis em modo seleção** (não há tela de busca separada). Pesquise,
+    e **clique no perfil** (ou pressione **Enter**) para devolvê-lo ao cadastro;
+    use **Ver detalhes** se quiser abrir o perfil antes de escolher, e **Cancelar
+    seleção** para voltar sem escolher. Ao confirmar, o sistema pede confirmação e
+    as ações do perfil **preenchem toda a matriz de permissões** do usuário
+    (sobrescrevem o que estava marcado). O perfil não concede acesso por si —
+    apenas copia as ações. O cadastro em andamento é **preservado** no ida-e-volta.
   - **Cancelar** — se houver alterações não salvas, o sistema **pergunta antes**
     ("Cancelar alterações?"). Ao confirmar: na edição, **desfaz as alterações e
     mantém você no registro** (restaura o original); num registro novo, **volta
@@ -93,10 +97,11 @@ Conhecimento).
     + marca os campos **e** dispara um **toast** com a mesma mensagem.
 - **Regras**: o **perfil não concede acesso** (apenas copia/redefine ações); a
   autorização lê sempre `user.permissions`. Multiempresa via `role`/`accessScope`
-  (ADR-006). Decisões de comportamento: **scroll infinito** (template ADR-002) e
-  **cancelar restaura/permanece** (template ADR-001).
+  (ADR-006). Decisões de comportamento: **scroll infinito** (template ADR-002),
+  **cancelar restaura/permanece** (template ADR-001) e **listagem como consulta
+  reutilizável / modo seleção** (template ADR-003).
 - **Permissões**: acesso por (recurso, ação); ver a matriz na própria tela.
-- **Impactos**: módulo `src/modules/users`; `shared/access`; grid/estado em
-  `shared/widgets` (`PageContainer`, `BaseDataTable`, `EmptyState`) e
-  `shared/stores` (`BaseCrudStore`).
+- **Impactos**: módulo `src/modules/users`; `shared/access`; `shared/selection`
+  (canal de seleção); grid/estado em `shared/widgets` (`PageContainer`,
+  `BaseDataTable`, `EmptyState`, `LookupField`) e `shared/stores` (`BaseCrudStore`).
 - **Especificação**: `docs/specifications/users/users-and-permissions.md`.

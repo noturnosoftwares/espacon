@@ -73,8 +73,10 @@ Para a ação `A` no recurso `R`:
 3. **Se houver restrição de horário/IP:** validar.
 
 ### Perfil
-Modelo com `permissions`. Ao selecioná-lo no usuário, **redefine** todas as ações
-(com confirmação — sobrescreve). Depois o usuário edita livremente. **Nunca** é
+Modelo com `permissions`. A busca/seleção de perfil **reusa a própria listagem
+`/perfis`** aberta em **modo seleção** (template ADR-003 — não há tela/diálogo de
+busca duplicado). Ao selecioná-lo no usuário, **redefine** todas as ações (com
+confirmação — sobrescreve). Depois o usuário edita livremente. **Nunca** é
 consultado na autorização.
 
 ---
@@ -149,17 +151,24 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
 - `/usuarios/novo` e `/usuarios/:id` — formulário (dados + funcionário, Caixa,
   Remoto, Horário, IP, **busca de Perfil**, **matriz de permissões**). O Perfil é
   **dado de referência do backend**, então usa **campo de busca/`LookupField`**
-  (diálogo que retorna o registro), **nunca** listbox/select (DS §9.2). Ao aplicar
-  um perfil (com confirmação), suas ações **preenchem/sobrescrevem toda a matriz**
-  do usuário (`applyProfileToUser`). **Cancelar**
-  com alterações **confirma antes**; ao confirmar, em edição restaura o registro e
-  permanece no detalhe, em registro novo volta à lista (template ADR-001). Falha
-  de save (validação/API) dispara **toast** além do informativo no topo.
+  (DS §9.2), **nunca** listbox/select. Acionar o campo **abre a listagem `/perfis`
+  em modo seleção** (`?mode=select&req=<id>`) pelo **canal de seleção
+  compartilhado** (`shared/selection`); a listagem devolve o registro e o form o
+  consome ao ser reativado — sem tela de busca duplicada (template ADR-003). Ao
+  aplicar um perfil (com confirmação), suas ações **preenchem/sobrescrevem toda a
+  matriz** do usuário (`applyProfileToUser`). **Cancelar** com alterações
+  **confirma antes**; ao confirmar, em edição restaura o registro e permanece no
+  detalhe, em registro novo volta à lista (template ADR-001). Falha de save
+  (validação/API) dispara **toast** além do informativo no topo.
 - `/perfis`, `/perfis/novo`, `/perfis/:id` — perfis (descrição + **a mesma
   matriz**). Mesmos padrões da tela de usuários: `PageContainer`, grid de leitura
   com **scroll infinito** (template ADR-002), estado vazio com termo destacado +
   "Limpar pesquisa", e formulário com `StickyActionBar`, **cancelar com
   confirmação/restauração** (template ADR-001), excluir no cabeçalho e toast.
+  A listagem `/perfis` opera em **dois modos** (template ADR-003): em **gestão**,
+  clique/Enter na linha abrem detalhes; em **seleção** (`?mode=select`), confirmam
+  e devolvem o perfil. Em ambos os modos há o botão **Ver detalhes** por linha
+  (em modo seleção, único caminho para abrir o registro) além do **Novo perfil**.
 
 A **matriz** mostra recursos (catálogo) × 9 ações, com toggles individual/por
 sessão/por coluna e **9 contadores ao vivo**.
@@ -187,10 +196,11 @@ formatos finais de horário/IP.
 
 ## Impactos
 
-`shared/access` (novo), `shared/extensions` (`normalizePermissionKey`),
-`modules/users/*`, `router` (rotas), `modules/home` (sidebar expande sub-itens e
-flags `available`), `modules/auth` (`UserRole`/`AccessScope` movidos para o kernel,
-re-exportados). **ADR-006**, **ADR-008**.
+`shared/access` (novo), `shared/selection` (novo — canal de seleção, template
+ADR-003), `shared/extensions` (`normalizePermissionKey`), `modules/users/*`,
+`router` (rotas + query `mode=select`/`req`), `modules/home` (sidebar expande
+sub-itens e flags `available`), `modules/auth` (`UserRole`/`AccessScope` movidos
+para o kernel, re-exportados). **ADR-006**, **ADR-008**, **template ADR-003**.
 
 ---
 

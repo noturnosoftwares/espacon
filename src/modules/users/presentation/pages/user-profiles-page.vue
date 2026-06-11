@@ -2,14 +2,21 @@
 /**
  * UserProfilesPage — pesquisa de perfis (rota `/perfis`), dentro do `AppShell`.
  *
- * Mesmos padrões da `UsersPage` (Design System §9.1): abre vazia, busca por
- * **Enter**, grid de **leitura** sem ações inline (clique na linha → edição),
- * **scroll infinito** (ADR-002) e estado vazio com termo destacado + **Limpar
- * pesquisa**. Espaçamento via `PageContainer` (§4). O perfil é apenas um modelo
- * de cadastro (não concede acesso). Sem regra de negócio na tela.
+ * Esta é a **única** tela de pesquisa/seleção de perfil (ADR — "Tela de listagem
+ * como consulta reutilizável"). Opera em **dois modos**, decididos por
+ * `?mode=select` na rota (via `useSelectionMode`):
+ * - **modo gestão** (padrão): clique/Enter na linha → abre detalhes/edição;
+ * - **modo seleção**: clique/Enter na linha → **confirmam e devolvem** o perfil
+ *   à tela solicitante (não abrem detalhes). Para abrir o registro neste modo,
+ *   usa-se o botão explícito **Ver detalhes** de cada linha.
+ *
+ * Mantém os padrões da `UsersPage` (Design System §9.1): abre vazia, busca por
+ * **Enter**, grid de leitura, **scroll infinito** (ADR-002) e estado vazio com
+ * termo destacado. Sem regra de negócio na tela.
  */
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSelectionMode } from '@/shared/selection'
 import {
   BaseButton,
   BaseCard,
@@ -23,6 +30,7 @@ import type { UserProfile } from '../../domain/models'
 
 const router = useRouter()
 const store = useUserProfilesStore()
+const { isSelectMode, confirmSelection, cancelSelection } = useSelectionMode<UserProfile>()
 
 const search = ref('')
 
@@ -41,9 +49,10 @@ const columns = [
     field: 'resources',
     label: 'Recursos',
     sortable: true,
-    width: '12rem',
+    width: '10rem',
     sortAccessor: (row: UserProfile) => row.permissions.length,
   },
+  { field: 'actions', label: 'Ações', sortable: false, width: '11rem', align: 'right' as const },
 ]
 
 /** Busca por Enter ou botão (§9.1) — nunca a cada tecla. */
@@ -60,8 +69,20 @@ function clearSearch(): void {
 function goNew(): void {
   void router.push({ name: 'user-profile-new' })
 }
-function openProfile(profile: UserProfile): void {
+
+/** Abre o registro (detalhes/edição) — funciona nos **dois** modos. */
+function openDetails(profile: UserProfile): void {
   void router.push({ name: 'user-profile-edit', params: { id: profile.id } })
+}
+
+/**
+ * Gesto principal na linha (clique/Enter):
+ * - modo seleção → confirma e devolve o perfil;
+ * - modo gestão → abre detalhes/edição.
+ */
+function onRowActivate(profile: UserProfile): void {
+  if (isSelectMode.value) confirmSelection(profile)
+  else openDetails(profile)
 }
 </script>
 
@@ -70,13 +91,31 @@ function openProfile(profile: UserProfile): void {
     <!-- Cabeçalho -->
     <header class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-content">Perfis de Usuário</h1>
+        <h1 class="text-2xl font-bold text-content">
+          {{ isSelectMode ? 'Selecionar perfil' : 'Perfis de Usuário' }}
+        </h1>
         <p class="mt-1 text-sm text-content-muted">
-          Modelos de cadastro que aceleram a atribuição de permissões.
+          {{
+            isSelectMode
+              ? 'Clique em um perfil (ou pressione Enter) para devolvê-lo ao cadastro.'
+              : 'Modelos de cadastro que aceleram a atribuição de permissões.'
+          }}
         </p>
       </div>
       <BaseButton icon="pi-plus" label="Novo perfil" @click="goNew" />
     </header>
+
+    <!-- Faixa do modo seleção: deixa o modo explícito e oferece o cancelar. -->
+    <div
+      v-if="isSelectMode"
+      class="flex items-center justify-between gap-3 rounded-field border border-accent/40 bg-accent/10 px-4 py-2 text-sm text-content"
+    >
+      <span class="flex items-center gap-2">
+        <i class="pi pi-arrow-right-arrow-left text-accent" aria-hidden="true"></i>
+        Modo seleção: escolha um perfil para devolver ao cadastro.
+      </span>
+      <BaseButton variant="neutral" icon="pi-times" label="Cancelar seleção" @click="cancelSelection" />
+    </div>
 
     <!-- Busca -->
     <div class="flex w-full max-w-xl items-center gap-2">
@@ -116,7 +155,7 @@ function openProfile(profile: UserProfile): void {
         </BaseCard>
       </div>
 
-      <!-- Grid de leitura: linha clicável, sem ações inline, scroll infinito. -->
+      <!-- Grid de leitura: linha clicável + ação "Ver detalhes", scroll infinito. -->
       <BaseDataTable
         :rows="store.items"
         :columns="columns"
@@ -124,11 +163,24 @@ function openProfile(profile: UserProfile): void {
         :has-more="store.hasMore"
         :loading-more="store.loadingMore"
         row-key="id"
-        @row-click="openProfile"
+        @row-click="onRowActivate"
         @load-more="store.loadNext"
       >
         <template #cell-resources="{ row }">
           <span class="text-content-soft">{{ (row as UserProfile).permissions.length }} recurso(s)</span>
+        </template>
+        <!-- Ação explícita: abre o registro nos dois modos (em seleção é o único
+             caminho para abrir detalhes). `@click.stop` evita disparar o gesto da
+             linha (que, em modo seleção, confirmaria a seleção). -->
+        <template #cell-actions="{ row }">
+          <span class="inline-flex justify-end" @click.stop @keydown.enter.stop>
+            <BaseButton
+              variant="neutral"
+              icon="pi-eye"
+              label="Ver detalhes"
+              @click="openDetails(row as UserProfile)"
+            />
+          </span>
         </template>
         <template #empty>
           <EmptyState icon="pi-search-minus" tone="danger">

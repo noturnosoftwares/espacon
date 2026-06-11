@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useBaseCrudStore, type CancelOutcome } from '@/shared/stores'
+import { isOk } from '@/shared/result'
 import type { Permission } from '@/shared/access'
 import { type User, type UserProfile, copyUser, emptyUser } from '../../domain/models'
 import type { UserFilters } from '../../domain/repositories'
-import { applyProfileToUser, makeUsersUseCases } from '../../data/application'
+import { applyProfileToUser, makeUsersUseCases, makeUserProfilesUseCases } from '../../data/application'
 
 /**
  * useUsersStore — estado do CRUD de usuários (lista + edição).
@@ -20,11 +21,27 @@ import { applyProfileToUser, makeUsersUseCases } from '../../data/application'
 export const useUsersStore = defineStore('users', () => {
   const crud = useBaseCrudStore<User, UserFilters>()
   const usecases = makeUsersUseCases()
+  const profileUsecases = makeUserProfilesUseCases()
 
   // A lista já foi pesquisada ao menos uma vez nesta sessão de navegação?
   // Preserva o contexto ao voltar de um registro (não zera a tela).
   const searched = ref(false)
   const currentQuery = computed(() => crud.filters.value?.query ?? '')
+
+  // Rótulo do perfil de origem (`sourceProfileId`) para exibir no campo de busca
+  // sem carregar todos os perfis: resolvido pontualmente por id. É só cosmético —
+  // a autorização lê `editing.permissions`, não o perfil.
+  const sourceProfileLabel = ref<string | null>(null)
+
+  /** Resolve a descrição do perfil de origem (fallback para `Perfil #id`). */
+  async function resolveSourceProfileLabel(id: number | null): Promise<void> {
+    if (id == null) {
+      sourceProfileLabel.value = null
+      return
+    }
+    const result = await profileUsecases.getUserProfileById(id)
+    sourceProfileLabel.value = isOk(result) ? result.data.description : `Perfil #${id}`
+  }
 
   // Load
   async function load(): Promise<void> {
@@ -54,11 +71,15 @@ export const useUsersStore = defineStore('users', () => {
   // Edição (estado de formulário) — delega o snapshot ao BaseCrudStore
   function startNew(): void {
     crud.beginCreate(emptyUser())
+    sourceProfileLabel.value = null
   }
 
   async function loadForEdit(id: number): Promise<boolean> {
     const user = await crud.run(() => usecases.getUserById(id))
-    if (user) crud.beginEdit(user)
+    if (user) {
+      crud.beginEdit(user)
+      await resolveSourceProfileLabel(user.sourceProfileId)
+    }
     return user !== null
   }
 
@@ -74,7 +95,16 @@ export const useUsersStore = defineStore('users', () => {
 
   /** Redefine as ações conforme o perfil selecionado (sobrescreve). */
   function applyProfile(profile: UserProfile): void {
-    if (crud.editing.value) crud.setEditing(applyProfileToUser(crud.editing.value, profile))
+    if (crud.editing.value) {
+      crud.setEditing(applyProfileToUser(crud.editing.value, profile))
+      sourceProfileLabel.value = profile.description
+    }
+  }
+
+  /** Limpa apenas o vínculo de origem (não desfaz as ações já copiadas). */
+  function clearProfile(): void {
+    patch({ sourceProfileId: null })
+    sourceProfileLabel.value = null
   }
 
   /**
@@ -113,6 +143,7 @@ export const useUsersStore = defineStore('users', () => {
     ...crud,
     searched,
     currentQuery,
+    sourceProfileLabel,
     load,
     loadNext,
     applyFilters,
@@ -122,6 +153,7 @@ export const useUsersStore = defineStore('users', () => {
     patch,
     setPermissions,
     applyProfile,
+    clearProfile,
     cancelEdit,
     save,
     remove,
