@@ -81,8 +81,10 @@ Conhecimento).
     completa.
   - **Cadastro/edição** — clique numa linha (ou **Novo usuário**). Os campos ficam
     agrupados por contexto; **Salvar/Cancelar** aparecem só quando há alteração.
-  - **Cancelar** — ao editar, **desfaz as alterações e mantém você no registro**
-    (restaura o original). Ao incluir um registro novo, **volta para a lista**.
+  - **Cancelar** — se houver alterações não salvas, o sistema **pergunta antes**
+    ("Cancelar alterações?"). Ao confirmar: na edição, **desfaz as alterações e
+    mantém você no registro** (restaura o original); num registro novo, **volta
+    para a lista**.
   - **Erros ao salvar** — falha de validação ou de gravação mostra o aviso no topo
     + marca os campos **e** dispara um **toast** com a mesma mensagem.
 - **Regras**: o **perfil não concede acesso** (apenas copia/redefine ações); a

@@ -64,6 +64,7 @@ const SCOPE_OPTIONS: { label: string; value: AccessScope }[] = [
 const isEdit = computed(() => route.name === 'user-edit')
 const submitted = ref(false)
 const askingDelete = ref(false)
+const askingCancel = ref(false)
 
 // Guarda de navegação (§9.2): sair com alteração não salva pede confirmação.
 const askingDiscard = ref(false)
@@ -166,11 +167,25 @@ async function onSave(): Promise<void> {
 }
 
 /**
- * Cancelar (ADR-001):
+ * Cancelar (§9.2 + ADR-001). Cancelar é uma ação que **descarta alterações**,
+ * então **confirma antes** quando há mudanças não salvas (dirty). Sem alterações,
+ * cancela direto. Após confirmar, aplica a regra do ADR-001 em `performCancel`.
+ */
+function onCancel(): void {
+  if (store.isDirty) {
+    askingCancel.value = true
+    return
+  }
+  performCancel()
+}
+
+/**
+ * Executa o cancelamento (ADR-001):
  * - **edição** → restaura o registro original e **permanece na tela de detalhe**;
  * - **registro novo** → descarta e **volta para a listagem**.
  */
-function onCancel(): void {
+function performCancel(): void {
+  askingCancel.value = false
   const outcome = store.cancelEdit()
   submitted.value = false
   if (outcome === 'leave') {
@@ -405,6 +420,23 @@ function onCancelDiscard(): void {
       :loading="store.isDeleting"
       @confirm="onConfirmDelete"
       @update:visible="(v) => (askingDelete = v)"
+    />
+
+    <!-- Confirmação de cancelamento (§9.2): cancelar descarta alterações. -->
+    <ConfirmDialog
+      :visible="askingCancel"
+      purpose="danger"
+      title="Cancelar alterações?"
+      :message="
+        isEdit
+          ? 'As alterações serão desfeitas e o registro voltará ao estado salvo.'
+          : 'O cadastro em andamento será descartado.'
+      "
+      confirmLabel="Sim, cancelar"
+      confirmIcon="pi-undo"
+      cancelLabel="Continuar editando"
+      @confirm="performCancel"
+      @update:visible="(v) => (askingCancel = v)"
     />
 
     <!-- Guarda de navegação (§9.2): descartar alterações não salvas ao sair. -->

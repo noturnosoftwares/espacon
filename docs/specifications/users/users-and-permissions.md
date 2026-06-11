@@ -148,9 +148,9 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
   (`#FF2626`) + botão **"Limpar pesquisa"** (limpa termo + filtros e recarrega).
 - `/usuarios/novo` e `/usuarios/:id` — formulário (dados + funcionário, Caixa,
   Remoto, Horário, IP, seletor de Perfil, **matriz de permissões**). **Cancelar**
-  em edição restaura o registro e permanece no detalhe; em registro novo volta à
-  lista (template ADR-001). Falha de save (validação/API) dispara **toast** além
-  do informativo no topo.
+  com alterações **confirma antes**; ao confirmar, em edição restaura o registro e
+  permanece no detalhe, em registro novo volta à lista (template ADR-001). Falha
+  de save (validação/API) dispara **toast** além do informativo no topo.
 - `/perfis`, `/perfis/novo`, `/perfis/:id` — perfis (descrição + **a mesma matriz**).
 
 A **matriz** mostra recursos (catálogo) × 9 ações, com toggles individual/por
