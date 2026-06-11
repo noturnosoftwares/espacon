@@ -1,0 +1,20 @@
+/**
+ * Componentes-base do Design System (§8). Toda tela monta campo, botão, tabela,
+ * diálogo, badge, card e estado vazio a partir DAQUI — nunca "na mão".
+ */
+export { default as BaseButton } from './base-button.vue'
+export { default as BaseCard } from './base-card.vue'
+export { default as PageContainer } from './page-container.vue'
+export { default as StatusBadge } from './status-badge.vue'
+export { default as EmptyState } from './empty-state.vue'
+export { default as SearchField } from './search-field.vue'
+export { default as FormField } from './form-field.vue'
+export { default as BaseTextField } from './base-text-field.vue'
+export { default as LookupField } from './lookup-field.vue'
+export { default as FormSection } from './form-section.vue'
+export { default as BaseDataTable } from './base-data-table.vue'
+export { default as BasePagination } from './base-pagination.vue'
+export { default as ConfirmDialog } from './confirm-dialog.vue'
+export { default as BaseToast } from './base-toast.vue'
+export { default as StickyActionBar } from './sticky-action-bar.vue'
+export { default as BrazilPointsMap } from './brazil-points-map.vue'
