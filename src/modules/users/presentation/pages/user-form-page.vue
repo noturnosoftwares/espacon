@@ -17,7 +17,6 @@ import {
   type RouteLocationNormalized,
 } from 'vue-router'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { useToast } from 'primevue/usetoast'
 import { type AccessScope, type Permission, type UserRole } from '@/shared/access'
 import { useSelectionStore } from '@/shared/selection'
 import {
@@ -29,6 +28,7 @@ import {
   LookupField,
   PageContainer,
   StickyActionBar,
+  useAppToast,
 } from '@/shared/widgets'
 import { useUsersStore, usePermissionCatalogStore } from '../stores'
 import {
@@ -40,7 +40,7 @@ import type { CashOperator, UserProfile } from '../../domain/models'
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toast = useAppToast()
 const store = useUsersStore()
 const catalog = usePermissionCatalogStore()
 const selection = useSelectionStore()

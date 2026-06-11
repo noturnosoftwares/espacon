@@ -17,7 +17,6 @@ import {
   type LocationQueryRaw,
   type RouteLocationNormalized,
 } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
 import type { Permission } from '@/shared/access'
 import {
   BaseButton,
@@ -26,13 +25,14 @@ import {
   FormSection,
   PageContainer,
   StickyActionBar,
+  useAppToast,
 } from '@/shared/widgets'
 import { useUserProfilesStore, usePermissionCatalogStore } from '../stores'
 import { PermissionMatrix } from '../widgets'
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toast = useAppToast()
 const store = useUserProfilesStore()
 const catalog = usePermissionCatalogStore()
 

@@ -8,8 +8,7 @@
  */
 import { computed } from 'vue'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { useToast } from 'primevue/usetoast'
-import { BaseSelect, FormSection, LookupField } from '@/shared/widgets'
+import { BaseSelect, FormSection, LookupField, useAppToast } from '@/shared/widgets'
 import {
   type CashOperator,
   CashOperatorType,
@@ -20,7 +19,7 @@ import {
 const props = defineProps<{ modelValue: CashOperator }>()
 const emit = defineEmits<{ 'update:modelValue': [value: CashOperator] }>()
 
-const toast = useToast()
+const toast = useAppToast()
 
 const TYPE_OPTIONS = [
   { label: 'Ilimitado', value: CashOperatorType.Unlimited },
