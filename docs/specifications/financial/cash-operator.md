@@ -2,7 +2,7 @@
 
 > Repositório: **EspaçoN** (produto) · herda regras do template `../template`.
 > Caminho no repositório: `docs/specifications/financial/cash-operator.md`
-> Status: **Rascunho v1 — mock-first; pendente de confirmações (ver "Pendências").**
+> Status: **Implementado v1 — mock-first** (frontend lidera o contrato).
 
 ---
 
@@ -102,11 +102,14 @@ CashOperatorsPage
 ### Seleção em outro módulo (usuário e financeiro)
 
 ```txt
-CashOperatorPicker (widget)
-→ makeGetActiveCashOperators()  // somente active = true
-→ devolve lista para o seletor
+LookupField (consumidor) → abre /operadores-de-caixa?mode=select (canal shared/selection)
+→ listagem lista os ativos (getActiveCashOperators na abertura)
+→ usuário escolhe → canal devolve o CashOperator à tela solicitante
 → módulo consumidor grava apenas o `code`
 ```
+
+Não há **widget** seletor dedicado: reusa-se a **própria listagem** em modo
+seleção (template ADR-003), evitando uma segunda tela de busca.
 
 ---
 
@@ -189,14 +192,14 @@ export function cashOperatorCopyWith(
 
 // filtros da listagem (tipo F do BaseCrudStore)
 export interface CashOperatorFilters {
-  search?: string          // casa por código OU nome
-  onlyActive?: boolean
+  search?: string                              // casa por código OU nome
+  status?: 'all' | 'active' | 'inactive'       // filtro de Situação (tri-state)
 }
 ```
 
-> **Nota de naming (ver ADR-008):** o value object atual do usuário também se chama
-> `CashOperator`. Para liberar o nome para a **entidade**, o VO do usuário deve ser
-> renomeado para `CashOperatorAssignment` (`isOperator`, `type`, `operatorCode`).
+> **Nota de naming (ver ADR-008) — feito:** o VO do usuário foi renomeado para
+> `CashOperatorAssignment` (`isOperator`, `type`, `operatorCode`), liberando o nome
+> `CashOperator` para esta **entidade** (`modules/cash-operators`).
 
 ---
 
@@ -240,7 +243,7 @@ memória para validar duplicidade.
 | Item                                    | Onde                                              | Por quê                                              |
 | --------------------------------------- | ------------------------------------------------- | ---------------------------------------------------- |
 | Entidade `CashOperator` + CRUD + telas  | **`modules/cash-operators`**                      | Registro mestre próprio                              |
-| `CashOperatorPicker` (seletor de ativos)| **`modules/cash-operators/presentation/widgets`** (exportado) | Reusado por Usuários **e** módulos financeiros |
+| Seleção de operador ativo               | **listagem `/operadores-de-caixa` em modo seleção** (`shared/selection`) | Reusa a própria listagem (ADR-003); sem widget/tela duplicada |
 | `CashOperatorRepository` / UseCases     | `modules/cash-operators/{domain,data}`            | Consumidos por outros módulos via factory            |
 | Campos genéricos (texto, busca)         | **`shared/widgets`** (BaseTextField, SearchField) | Verificar/reusar antes de criar (regra do template)  |
 
@@ -262,39 +265,47 @@ estado vazio, estado de erro. Ações por linha: editar, inativar. Botão "Novo"
 Campos: `código`, `nome`, switch `ativo`. Validação inline (código/nome
 obrigatórios, código único). Salvar via store → UseCase.
 
-### Seletor reutilizável — `CashOperatorPicker`
+### Seleção reutilizável — listagem em **modo seleção**
 
-Componente que lista apenas operadores **ativos** e devolve o `code` escolhido.
-Usado no bloco "Caixa" do cadastro de Usuário (quando LIMITADO) e, futuramente,
-nas telas financeiras.
+Não há componente seletor dedicado: a **própria listagem** abre em
+`?mode=select` (canal `shared/selection`, template ADR-003), lista os operadores
+**ativos** e devolve o `CashOperator` escolhido. Usada no bloco "Caixa" do
+cadastro de Usuário (quando LIMITADO) e, futuramente, nas telas financeiras —
+sempre gravando apenas o `code`. A coluna **Ver detalhes** (botão de ícone) só
+aparece nesse modo.
 
 ---
 
 ## Permissões e Rota (ADR-006)
 
-- **Recurso permissionável** no catálogo: "Operador de Caixa" (sessão **Financeiro**
-  ou **Cadastros** — confirmar), com as 9 ações padrão.
-- Rota sugerida: `/financeiro/operadores-de-caixa` (confirmar agrupamento/menu).
-- Item de menu e guard de rota gated por `can('OPERADOR DE CAIXA', 'abrir')`.
+- **Recurso permissionável** no catálogo: "Operador de Caixa" (`FIN-007`, sessão
+  **Financeiro**), com as 9 ações padrão.
+- Rota: `/operadores-de-caixa` (+ `/novo` e `/:id`), dentro do `AppShell`. Mantida
+  **plana** por consistência com `/usuarios` e `/perfis` (não `/financeiro/...`).
+- Item de menu sob **Financeiro** (`available`); guard de rota por sessão
+  (`requiresAuth`). O gate por `can('OPERADOR DE CAIXA', 'abrir')` entra quando o
+  contrato de login carregar `Permission[]` (ver ADR-008).
 
 ---
 
-## Vínculo com o módulo de Usuários (tarefa do Claude Code, pós-criação)
+## Vínculo com o módulo de Usuários (implementado)
 
-Após criar `modules/cash-operators`, vincular ao Usuário (já especificado em
-`users-and-permissions.md`):
-
-1. **Renomear** o VO do usuário `CashOperator` → `CashOperatorAssignment`
-   (libera o nome para a entidade). Ver ADR-008.
-2. No bloco "Caixa" do formulário de usuário, **substituir o campo livre** de
-   `operatorCode` por `CashOperatorPicker` quando `type = limited`.
-3. **Validar no save do usuário:** `type = limited` ⇒ `operatorCode` obrigatório
-   e correspondente a operador **ativo** (consulta ao `CashOperatorRepository`).
-4. **Proteger integridade:** inativar/remover operador referenciado por algum
-   usuário deve ser bloqueado (remoção) ou avisado (inativação).
-
-> Pré-requisito a confirmar: ver Pendência sobre o estado atual do módulo de
-> Usuários (spec existe; é preciso confirmar se já há código implementado).
+1. ✅ **VO renomeado** `CashOperator` → `CashOperatorAssignment` (libera o nome
+   para a entidade). Ver ADR-008.
+2. ✅ No bloco "Caixa" do formulário de usuário, o `operatorCode` (quando
+   `type = limited`) é um **`LookupField`** que abre a **listagem de operadores em
+   modo seleção** (`/operadores-de-caixa?mode=select`), pelo **canal de seleção
+   compartilhado** (`shared/selection`, template ADR-003) — em vez de um
+   `CashOperatorPicker` dedicado, reusa a própria listagem (não há tela de busca
+   duplicada). Só **ativos** são selecionáveis. O rótulo "código — nome" é
+   resolvido pela store de usuários via `getActiveCashOperators`.
+3. **Validação parcial:** a obrigatoriedade de `operatorCode` quando
+   `type = limited` é validada no form; a seleção só oferece operadores **ativos**
+   (logo, ativo-na-seleção). A reconferência "existe e está ativo" **no save** fica
+   para o backend (autoridade de segurança) — ver Pendências.
+4. **Integridade na inativação:** ver Pendências — o mock faz **inativação lógica**
+   simples (`active = false`), sem checagem cruzada de referências (essa direção
+   exigiria o módulo de operadores conhecer Usuários/Financeiro).
 
 ---
 
@@ -318,30 +329,36 @@ conversão JSON ↔ model fica na camada `data`. Definir no backend a unicidade 
 
 ## Base de Conhecimento
 
-Documentar: o que é o operador de caixa; onde cadastrar (rota/menu); como criar,
-editar e inativar; a regra de vínculo no usuário (opcional / obrigatório quando
-LIMITADO); que módulos consomem o operador; permissões da tela; impacto da
-inativação em registros históricos.
+Verbete **"Operadores de Caixa"** adicionado em
+`docs/specifications/ajuda/README.md`: o que é; onde acessar (Financeiro →
+Operador de Caixa); pesquisa/filtro de situação; criar/editar; código único e
+imutável; **inativação** (soft) e reativação; **modo seleção** a partir do
+usuário; permissões (`FIN-007`).
 
 ---
 
-## Pendências (precisam de confirmação)
+## Decisões tomadas nesta implementação
 
-- [ ] **Estado do módulo de Usuários:** a spec existe (Rascunho v2), mas é preciso
-      confirmar se já há **código** implementado em `src/modules/users`. Isso
-      define se o passo de vínculo é "ligar a um módulo pronto" ou "considerar no
-      momento da implementação do usuário".
-- [ ] **`code`:** manual ou gerado automático? Numérico ou alfanumérico?
-      Imutável após criação? (assumido: manual, alfanumérico, único, imutável).
-- [ ] **Exclusão:** confirmar **inativação (soft)** como padrão, com remoção física
-      apenas quando nunca referenciado (assumido aqui).
-- [ ] **Escopo multiempresa:** o operador é **global** ou pertence a uma
-      **franquia** (`franchiseId`)? (assumido global/simples por ora; abrir campo
-      se necessário — impacto em filtros e ADR-006).
-- [ ] **Agrupamento/rota:** menu sob **Financeiro** ou **Cadastros**?
-- [ ] **Referência por `code` vs `id`:** mantida por `code` (consistente com o
-      atual `operatorCode`); confirmar a imutabilidade do código para preservar
-      vínculos.
+- ✅ **`code`:** manual, alfanumérico, único e **imutável após a criação** (o campo
+      fica `disabled` na edição). A unicidade é validada no save (mock em memória →
+      erro de validação "Já existe um operador com este código.").
+- ✅ **Exclusão = inativação (soft):** "Inativar" marca `active = false`; o registro
+      permanece e é preservado em históricos. Não há remoção física na UI.
+- ✅ **Agrupamento/rota:** menu sob **Financeiro**; rota **plana**
+      `/operadores-de-caixa` (consistência com `/usuarios`, `/perfis`).
+- ✅ **Referência por `code`** (consistente com `operatorCode`); imutabilidade do
+      código preserva os vínculos.
+
+## Pendências (evolução futura, não bloqueiam)
+
+- [ ] **Validação "existe e está ativo" no save do usuário** (backend como
+      autoridade): hoje a seleção já restringe a ativos; falta a reconferência
+      server-side ao gravar.
+- [ ] **Integridade referencial na inativação/remoção:** bloquear remoção física e
+      avisar na inativação quando referenciado — exige consulta cruzada (Usuários,
+      Financeiro). Fora do escopo do mock atual.
+- [ ] **Escopo multiempresa:** operador **global** vs **franquia** (`franchiseId`).
+      Assumido global/simples por ora (impacto em filtros e ADR-006).
 
 ---
 

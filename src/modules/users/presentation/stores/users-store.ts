@@ -3,7 +3,18 @@ import { computed, ref } from 'vue'
 import { useBaseCrudStore, type CancelOutcome } from '@/shared/stores'
 import { isOk } from '@/shared/result'
 import type { Permission } from '@/shared/access'
-import { type User, type UserProfile, copyUser, emptyUser } from '../../domain/models'
+import {
+  type CashOperator,
+  cashOperatorLabel,
+} from '@/modules/cash-operators/domain/models'
+import { makeCashOperatorsUseCases } from '@/modules/cash-operators/data/application'
+import {
+  type User,
+  type UserProfile,
+  copyUser,
+  copyCashOperatorAssignment,
+  emptyUser,
+} from '../../domain/models'
 import type { UserFilters } from '../../domain/repositories'
 import { applyProfileToUser, makeUsersUseCases, makeUserProfilesUseCases } from '../../data/application'
 
@@ -22,6 +33,7 @@ export const useUsersStore = defineStore('users', () => {
   const crud = useBaseCrudStore<User, UserFilters>()
   const usecases = makeUsersUseCases()
   const profileUsecases = makeUserProfilesUseCases()
+  const cashUsecases = makeCashOperatorsUseCases()
 
   // A lista já foi pesquisada ao menos uma vez nesta sessão de navegação?
   // Preserva o contexto ao voltar de um registro (não zera a tela).
@@ -41,6 +53,38 @@ export const useUsersStore = defineStore('users', () => {
     }
     const result = await profileUsecases.getUserProfileById(id)
     sourceProfileLabel.value = isOk(result) ? result.data.description : `Perfil #${id}`
+  }
+
+  // Rótulo "código — nome" do operador limitado vinculado (`operatorCode`), para
+  // o campo de busca exibir além do código. Só cosmético — a referência gravada é
+  // o `operatorCode`. Resolvido entre os operadores ativos do cadastro.
+  const selectedOperatorLabel = ref<string | null>(null)
+
+  /** Resolve o rótulo do operador pelo `code` (fallback para o próprio código). */
+  async function resolveOperatorLabel(code: string | null): Promise<void> {
+    if (!code) {
+      selectedOperatorLabel.value = null
+      return
+    }
+    const result = await cashUsecases.getActiveCashOperators()
+    const found = isOk(result) ? result.data.find((operator) => operator.code === code) : undefined
+    selectedOperatorLabel.value = found ? cashOperatorLabel(found) : code
+  }
+
+  /** Aplica o operador escolhido na listagem em modo seleção (grava o `code`). */
+  function applyOperator(operator: CashOperator): void {
+    if (!crud.editing.value) return
+    patch({
+      cashOperator: copyCashOperatorAssignment(crud.editing.value.cashOperator, {
+        operatorCode: operator.code,
+      }),
+    })
+    selectedOperatorLabel.value = cashOperatorLabel(operator)
+  }
+
+  /** Limpa o rótulo do operador (o `operatorCode` é zerado pelo campo). */
+  function clearOperator(): void {
+    selectedOperatorLabel.value = null
   }
 
   // Load
@@ -72,6 +116,7 @@ export const useUsersStore = defineStore('users', () => {
   function startNew(): void {
     crud.beginCreate(emptyUser())
     sourceProfileLabel.value = null
+    selectedOperatorLabel.value = null
   }
 
   async function loadForEdit(id: number): Promise<boolean> {
@@ -79,6 +124,7 @@ export const useUsersStore = defineStore('users', () => {
     if (user) {
       crud.beginEdit(user)
       await resolveSourceProfileLabel(user.sourceProfileId)
+      await resolveOperatorLabel(user.cashOperator.operatorCode)
     }
     return user !== null
   }
@@ -144,6 +190,7 @@ export const useUsersStore = defineStore('users', () => {
     searched,
     currentQuery,
     sourceProfileLabel,
+    selectedOperatorLabel,
     load,
     loadNext,
     applyFilters,
@@ -154,6 +201,8 @@ export const useUsersStore = defineStore('users', () => {
     setPermissions,
     applyProfile,
     clearProfile,
+    applyOperator,
+    clearOperator,
     cancelEdit,
     save,
     remove,

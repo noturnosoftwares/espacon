@@ -82,6 +82,28 @@ const router = createRouter({
           component: () => import('@/modules/users/presentation/pages/user-profile-form-page.vue'),
           meta: { requiresAuth: true },
         },
+
+        // Operadores de Caixa (ver spec `financial/cash-operator`). Registro
+        // mestre referenciado por usuários e pelo Financeiro; abre em modo
+        // seleção (`?mode=select`) a partir do bloco "Caixa" do usuário.
+        {
+          path: '/operadores-de-caixa',
+          name: 'cash-operators',
+          component: () => import('@/modules/cash-operators/presentation/pages/cash-operators-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/operadores-de-caixa/novo',
+          name: 'cash-operator-new',
+          component: () => import('@/modules/cash-operators/presentation/pages/cash-operator-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/operadores-de-caixa/:id',
+          name: 'cash-operator-edit',
+          component: () => import('@/modules/cash-operators/presentation/pages/cash-operator-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
       ],
     },
   ],

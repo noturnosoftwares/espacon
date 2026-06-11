@@ -3,23 +3,35 @@
  * CashOperatorFields — bloco "Caixa" do formulário de usuário.
  *
  * Regra (spec): operador → tipo (ilimitado | limitado); quando **limitado**,
- * exige `código`. Não é portão do checker — é dado consumido pelos módulos
- * financeiros. Emite o `CashOperator` imutável via `update:modelValue`.
+ * exige `operatorCode` que **referencia** um operador cadastrado e ativo. Não é
+ * portão do checker — é dado consumido pelos módulos financeiros. Emite o
+ * `CashOperatorAssignment` imutável via `update:modelValue`.
+ *
+ * O operador limitado é um **campo de busca** (`LookupField`, DS §9.2): acionar
+ * emite `open-operator-search` para a página abrir a **listagem de operadores em
+ * modo seleção** (template ADR-003). O rótulo do operador escolhido chega
+ * resolvido em `operatorLabel` (a página o resolve via o módulo de operadores).
  */
 import { computed } from 'vue'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { BaseSelect, FormSection, LookupField, useAppToast } from '@/shared/widgets'
+import { BaseSelect, FormSection, LookupField } from '@/shared/widgets'
 import {
-  type CashOperator,
+  type CashOperatorAssignment,
   CashOperatorType,
-  copyCashOperator,
+  copyCashOperatorAssignment,
   notOperator,
 } from '../../domain/models'
 
-const props = defineProps<{ modelValue: CashOperator }>()
-const emit = defineEmits<{ 'update:modelValue': [value: CashOperator] }>()
-
-const toast = useAppToast()
+const props = defineProps<{
+  modelValue: CashOperatorAssignment
+  /** Rótulo "código — nome" do operador vinculado, resolvido pela página. */
+  operatorLabel?: string | null
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [value: CashOperatorAssignment]
+  'open-operator-search': []
+  'clear-operator': []
+}>()
 
 const TYPE_OPTIONS = [
   { label: 'Ilimitado', value: CashOperatorType.Unlimited },
@@ -32,7 +44,9 @@ const isOperator = computed({
     // Ligar operador → default ilimitado; desligar → zera tipo e código.
     emit(
       'update:modelValue',
-      value ? copyCashOperator(props.modelValue, { isOperator: true, type: CashOperatorType.Unlimited }) : notOperator(),
+      value
+        ? copyCashOperatorAssignment(props.modelValue, { isOperator: true, type: CashOperatorType.Unlimited })
+        : notOperator(),
     )
   },
 })
@@ -41,31 +55,21 @@ const type = computed({
   get: () => props.modelValue.type,
   set: (value: CashOperatorType | null) => {
     const operatorCode = value === CashOperatorType.Limited ? props.modelValue.operatorCode : null
-    emit('update:modelValue', copyCashOperator(props.modelValue, { type: value, operatorCode }))
+    emit('update:modelValue', copyCashOperatorAssignment(props.modelValue, { type: value, operatorCode }))
   },
 })
 
 const isLimited = computed(() => props.modelValue.type === CashOperatorType.Limited)
 const codeMissing = computed(() => isLimited.value && !props.modelValue.operatorCode)
 
-/**
- * O operador **limitado** referencia um operador cadastrado — portanto é um
- * **campo de busca** (`LookupField`, DS §9.2), não digitação livre. A tela de
- * cadastro/seleção de operadores **ainda será implementada**; o campo já nasce
- * no formato certo (ADR-003). Até lá, acionar informa que está por vir; valores
- * já gravados nos mocks continuam exibidos pelo `formatSelected`.
- */
-function openOperatorSearch(): void {
-  toast.add({
-    severity: 'info',
-    summary: 'Em breve',
-    detail: 'O cadastro de operadores de caixa ainda será implementado.',
-    life: 4000,
-  })
+/** Rótulo do campo de busca: "código — nome" resolvido, ou fallback pelo código. */
+function operatorDisplay(value: string | number): string {
+  return props.operatorLabel ?? `Operador ${value}`
 }
 
 function clearOperatorCode(): void {
-  emit('update:modelValue', copyCashOperator(props.modelValue, { operatorCode: null }))
+  emit('update:modelValue', copyCashOperatorAssignment(props.modelValue, { operatorCode: null }))
+  emit('clear-operator')
 }
 </script>
 
@@ -92,10 +96,10 @@ function clearOperatorCode(): void {
         :model-value="modelValue.operatorCode"
         label="Operador (limitado)"
         placeholder="Buscar operador de caixa…"
-        hint="Selecione o operador cadastrado."
-        :format-selected="(v) => `Operador ${v}`"
+        hint="Selecione um operador ativo do cadastro."
+        :format-selected="operatorDisplay"
         :error="codeMissing ? 'Obrigatório para operador limitado.' : null"
-        @open="openOperatorSearch"
+        @open="emit('open-operator-search')"
         @clear="clearOperatorCode"
       />
     </div>

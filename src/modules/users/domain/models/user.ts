@@ -9,12 +9,12 @@ import {
   toUserRole,
 } from '@/shared/access'
 import {
-  type CashOperator,
-  type CashOperatorJson,
-  cashOperatorFromJson,
-  cashOperatorToJson,
+  type CashOperatorAssignment,
+  type CashOperatorAssignmentJson,
+  cashOperatorAssignmentFromJson,
+  cashOperatorAssignmentToJson,
   notOperator,
-} from './cash-operator'
+} from './cash-operator-assignment'
 import {
   type AccessTimeRestriction,
   type AccessTimeRestrictionJson,
@@ -50,7 +50,7 @@ export interface User {
   /** Vínculo opcional com funcionário (nem todo usuário é funcionário). */
   employeeId: number | null
 
-  cashOperator: CashOperator
+  cashOperator: CashOperatorAssignment
   /** Habilita features que atravessam empresas (cross-company). */
   remote: boolean
   accessTimeRestriction: AccessTimeRestriction
@@ -73,7 +73,7 @@ export interface UserJson {
   franchiseId: number | null
   representativeId: number | null
   employeeId: number | null
-  cashOperator: CashOperatorJson
+  cashOperator: CashOperatorAssignmentJson
   remote: boolean
   accessTimeRestriction: AccessTimeRestrictionJson
   ipRestriction: IpRestrictionJson
@@ -93,7 +93,9 @@ export function userFromJson(json: UserJson): User {
     franchiseId: json.franchiseId ?? null,
     representativeId: json.representativeId ?? null,
     employeeId: json.employeeId ?? null,
-    cashOperator: json.cashOperator ? cashOperatorFromJson(json.cashOperator) : notOperator(),
+    cashOperator: json.cashOperator
+      ? cashOperatorAssignmentFromJson(json.cashOperator)
+      : notOperator(),
     remote: json.remote === true,
     accessTimeRestriction: accessTimeRestrictionFromJson(json.accessTimeRestriction ?? null),
     ipRestriction: ipRestrictionFromJson(json.ipRestriction ?? null),
@@ -114,7 +116,7 @@ export function userToJson(user: User): UserJson {
     franchiseId: user.franchiseId,
     representativeId: user.representativeId,
     employeeId: user.employeeId,
-    cashOperator: cashOperatorToJson(user.cashOperator),
+    cashOperator: cashOperatorAssignmentToJson(user.cashOperator),
     remote: user.remote,
     accessTimeRestriction: accessTimeRestrictionToJson(user.accessTimeRestriction),
     ipRestriction: ipRestrictionToJson(user.ipRestriction),

@@ -36,7 +36,8 @@ import {
   AccessRestrictionsFields,
   PermissionMatrix,
 } from '../widgets'
-import type { CashOperator, UserProfile } from '../../domain/models'
+import type { CashOperator } from '@/modules/cash-operators/domain/models'
+import type { CashOperatorAssignment, UserProfile } from '../../domain/models'
 
 const route = useRoute()
 const router = useRouter()
@@ -95,8 +96,14 @@ onMounted(async () => {
   // requisição desta tela e a edição preservada, NÃO reinicializa — só aplica o
   // perfil quando houve escolha. Preserva o formulário em andamento.
   if (pendingId && matchesEditing) {
+    // O mesmo canal serve perfil e operador: o `resource` da requisição decide o
+    // que fazer com o registro devolvido (lido ANTES de consumir).
+    const request = selection.get(pendingId)
     const result = selection.consume(pendingId)
-    if (result?.status === 'selected') askApplyProfile(result.data as UserProfile)
+    if (result?.status === 'selected') {
+      if (request?.resource === 'operadores') store.applyOperator(result.data as CashOperator)
+      else askApplyProfile(result.data as UserProfile)
+    }
     return
   }
 
@@ -144,9 +151,22 @@ function onOpenEmployeeSearch(): void {
   })
 }
 
-const cashOperator = computed<CashOperator | undefined>(() => store.editing?.cashOperator)
-function onCashOperator(value: CashOperator): void {
+const cashOperator = computed<CashOperatorAssignment | undefined>(() => store.editing?.cashOperator)
+function onCashOperator(value: CashOperatorAssignment): void {
   store.patch({ cashOperator: value })
+}
+
+/**
+ * Operador limitado — campo de **referência** (lookup §9.2) que reusa a
+ * **listagem de operadores** em modo seleção (template ADR-003). Registramos a
+ * requisição no canal compartilhado e navegamos para
+ * `/operadores-de-caixa?mode=select&req=<id>`. `confirmedLeave` evita o pedido de
+ * descarte — o formulário é preservado e voltaremos a ele.
+ */
+function openOperatorSearch(): void {
+  const reqId = selection.open({ resource: 'operadores', returnTo: route.path })
+  confirmedLeave.value = true
+  void router.push({ name: 'cash-operators', query: { mode: 'select', req: reqId } })
 }
 
 const permissions = computed<Permission[]>(() => store.editing?.permissions ?? [])
@@ -402,11 +422,15 @@ function onCancelDiscard(): void {
           </div>
         </FormSection>
 
-        <!-- Caixa -->
+        <!-- Caixa — o operador limitado abre a listagem de operadores em modo
+             seleção (ADR-003); `operatorLabel` resolve "código — nome". -->
         <CashOperatorFields
           v-if="cashOperator"
           :modelValue="cashOperator"
+          :operator-label="store.selectedOperatorLabel"
           @update:modelValue="onCashOperator"
+          @open-operator-search="openOperatorSearch"
+          @clear-operator="store.clearOperator"
         />
 
         <!-- Acesso remoto -->

@@ -1,5 +1,5 @@
 export * from '../enums/cash-operator-type'
-export * from './cash-operator'
+export * from './cash-operator-assignment'
 export * from './access-restrictions'
 export * from './permission-catalog'
 export * from './user'

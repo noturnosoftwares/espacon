@@ -49,14 +49,17 @@ fonte de autorização.
 
 ### Usuário
 - **Vínculo com funcionário (opcional):** `employeeId` pode ser nulo.
-- **Operador de caixa:** `isOperator`; se operador → `type` = `unlimited | limited`;
-  se `limited` → exige `operatorCode`. **Não é portão do checker** — é dado
-  consumido pelos módulos financeiros (`limited` trava no código; `unlimited`
-  escolhe/filtra qualquer operador). O `operatorCode` referencia um operador
-  cadastrado, então a UI usa **campo de busca/`LookupField`** (DS §9.2), **nunca**
-  digitação livre. A tela de cadastro/seleção de operadores de caixa **ainda será
-  implementada** (template ADR-003); o campo já nasce no formato certo e, até lá,
-  acionar a busca informa que está por vir.
+- **Operador de caixa:** vínculo no VO `CashOperatorAssignment` (`isOperator`;
+  se operador → `type` = `unlimited | limited`; se `limited` → exige
+  `operatorCode`). **Não é portão do checker** — é dado consumido pelos módulos
+  financeiros (`limited` trava no código; `unlimited` escolhe/filtra qualquer
+  operador). O `operatorCode` **referencia** a entidade `CashOperator` (registro
+  mestre em `modules/cash-operators`, spec `financial/cash-operator`), então a UI
+  usa **campo de busca/`LookupField`** (DS §9.2), **nunca** digitação livre.
+  Acionar o campo **abre a listagem `/operadores-de-caixa` em modo seleção**
+  (`?mode=select&req=<id>`) pelo **canal de seleção compartilhado**
+  (`shared/selection`, template ADR-003) — só **ativos** são selecionáveis; o
+  rótulo "código — nome" é resolvido via `getActiveCashOperators`.
 - **`remote`:** habilita features que atravessam empresas (cross-company);
   avaliado só quando a operação for remota.
 
@@ -131,7 +134,9 @@ CRUD: validação, conflito, não encontrado, rede — sempre via `AsyncResult`/
   `IpRestriction`, `AccessRequest`, `AuthorizationResult`, `DenyReason`,
   `UserRole`, `AccessScope`, `checkAccess`, `countByAction`.
 - **`modules/users/domain`:** `User`, `UserProfile`, `PermissionCatalogEntry`,
-  `CashOperator`, `CashOperatorType`.
+  `CashOperatorAssignment` (VO do vínculo), `CashOperatorType`.
+- **`modules/cash-operators/domain`:** `CashOperator` (entidade — registro mestre,
+  spec `financial/cash-operator`).
 
 ## UseCases
 

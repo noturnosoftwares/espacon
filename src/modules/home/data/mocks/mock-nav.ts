@@ -72,6 +72,7 @@ export const navGroups: NavGroup[] = [
     icon: 'wallet',
     status: 'soon',
     items: [
+      { id: 'operador-caixa', label: 'Operador de Caixa', icon: 'wallet', route: '/operadores-de-caixa', status: 'available' },
       soon('caixa', 'Caixa', 'money-bill'),
       soon('contas-a-pagar', 'Contas a Pagar', 'arrow-circle-up'),
       soon('contas-a-receber', 'Contas a Receber', 'arrow-circle-down'),

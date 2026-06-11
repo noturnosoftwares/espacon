@@ -106,8 +106,9 @@ Conhecimento).
     agrupados por contexto; **Salvar/Cancelar** aparecem só quando há alteração.
   - **Operador de caixa** — ao marcar "Operador" escolha o **tipo**: *ilimitado*
     ou *limitado*. No **limitado**, o **Operador** é um **campo de busca** (não se
-    digita o código) que selecionará um operador cadastrado — a tela de cadastro de
-    operadores **ainda será implementada**; até lá o campo informa que está por vir.
+    digita o código): clicar abre a **listagem de Operadores de Caixa em modo
+    seleção**; escolha um operador **ativo** (clique/Enter) para devolvê-lo ao
+    cadastro. O campo passa a mostrar "código — nome".
   - **Matriz de permissões** — acima da matriz há um **filtro** para achar um
     recurso específico (por descrição ou código). Ele **refina a lista na hora**
     (local, sem requisição); os toggles de coluna/sessão passam a agir sobre os
@@ -139,3 +140,38 @@ Conhecimento).
   (canal de seleção); grid/estado em `shared/widgets` (`PageContainer`,
   `BaseDataTable`, `EmptyState`, `LookupField`) e `shared/stores` (`BaseCrudStore`).
 - **Especificação**: `docs/specifications/users/users-and-permissions.md`.
+
+---
+
+## Operadores de Caixa
+
+- **O que faz**: mantém o **registro mestre** de operadores de caixa (`código` +
+  `nome` + situação), fonte única referenciada pelo cadastro de usuário (operador
+  limitado) e, futuramente, pelos módulos financeiros.
+- **Onde acessar**: menu **Financeiro → Operador de Caixa** (rota
+  `/operadores-de-caixa`; exige sessão).
+- **Como usar**:
+  - **Pesquisa** — a tela **abre vazia**; digite código ou nome e pressione
+    **Enter** (ou **Buscar**). A lista usa **scroll infinito** (lotes de 30).
+  - **Filtro de Situação** — **Todas**, **Ativos** ou **Inativos**; refina a lista
+    já carregada na hora (não refaz a consulta) e vai ao servidor como parâmetro na
+    próxima busca. **Limpar** reseta termo e situação.
+  - **Cadastro/edição** — **Novo operador** ou clique numa linha. Informe
+    **código** (único; **não pode ser alterado** depois) e **nome**, e use o switch
+    **Operador ativo**. **Salvar** aparece só quando há alteração; código repetido
+    mostra erro e toast.
+  - **Inativar** — em vez de excluir, o operador é **inativado** (deixa de aparecer
+    nos seletores, mas o histórico que o referencia é preservado). Para reativar,
+    abra o registro e ligue **Operador ativo**.
+  - **Modo seleção** — quando aberto a partir do cadastro de usuário, a tela entra
+    em **modo seleção**: clique/Enter na linha devolve o operador; **Ver detalhes**
+    (botão de ícone) abre o registro; **Cancelar seleção** volta sem escolher.
+- **Regras**: código **único** e **imutável** após a criação; **excluir =
+  inativação** (soft); só **ativos** entram nos seletores. Decisões de
+  comportamento: **scroll infinito** (template ADR-002), **cancelar
+  restaura/permanece** (template ADR-001) e **modo seleção** (template ADR-003).
+- **Permissões**: recurso **Operador de Caixa** (`FIN-007`) no catálogo, sessão
+  Financeiro, com as 9 ações.
+- **Impactos**: módulo `src/modules/cash-operators`; vínculo no usuário via
+  `CashOperatorAssignment` + canal `shared/selection`.
+- **Especificação**: `docs/specifications/financial/cash-operator.md`.

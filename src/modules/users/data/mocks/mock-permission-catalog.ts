@@ -38,6 +38,7 @@ export const MOCK_PERMISSION_CATALOG: PermissionCatalogEntryJson[] = [
   { code: 'FIN-004', label: 'Comissão', section: 'Financeiro' },
   { code: 'FIN-005', label: 'Lançamento de Saída de Caixa', section: 'Financeiro' },
   { code: 'FIN-006', label: 'Inadimplência', section: 'Financeiro' },
+  { code: 'FIN-007', label: 'Operador de Caixa', section: 'Financeiro' },
 
   // Administrativo
   { code: 'ADM-001', label: 'Usuário', section: 'Administrativo' },
