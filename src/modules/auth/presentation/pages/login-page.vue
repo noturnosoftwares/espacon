@@ -36,7 +36,7 @@ function goToRecover(): void {
 </script>
 
 <template>
-  <main class="min-h-screen w-full bg-noturno-black-secondary p-4 sm:p-6 lg:p-8">
+  <main class="min-h-screen w-full bg-surface-canvas p-4 sm:p-6 lg:p-8">
     <div
       class="grid h-full min-h-[calc(100vh-3rem)] grid-cols-1 items-stretch gap-6 lg:grid-cols-[460px_1fr]"
     >

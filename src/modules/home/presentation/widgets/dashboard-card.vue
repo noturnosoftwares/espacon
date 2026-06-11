@@ -14,16 +14,16 @@ withDefaults(
     /** Classe de cor do ícone do cabeçalho. */
     iconColor?: string
   }>(),
-  { iconColor: 'text-noturno-orange' },
+  { iconColor: 'text-accent' },
 )
 </script>
 
 <template>
   <section
-    class="flex flex-col rounded-2xl border border-noturno-grey-light-clean-3 bg-noturno-black-secondary p-5"
+    class="flex flex-col rounded-2xl border border-line bg-surface-canvas p-5"
   >
     <header class="mb-4 flex items-center justify-between gap-3">
-      <h2 class="flex items-center gap-2.5 text-sm font-semibold text-noturno-white">
+      <h2 class="flex items-center gap-2.5 text-sm font-semibold text-content">
         <i :class="[iconClass(icon), iconColor]" class="text-base" aria-hidden="true"></i>
         {{ title }}
       </h2>
@@ -32,7 +32,7 @@ withDefaults(
 
     <div class="flex-1"><slot /></div>
 
-    <footer v-if="$slots.footer" class="mt-4 border-t border-noturno-grey-light-clean-3 pt-3">
+    <footer v-if="$slots.footer" class="mt-4 border-t border-line pt-3">
       <slot name="footer" />
     </footer>
   </section>

@@ -4,10 +4,14 @@
  * matriz/franquia/representante/técnico/cliente.
  *
  * Model imutável, em inglês (padrão corporativo), com `fromJson`/`toJson`.
+ *
+ * `UserRole`/`AccessScope` são tipos transversais do kernel de acesso
+ * (`shared/access`) — re-exportados aqui por compatibilidade com os imports
+ * atuais. Importamos o arquivo-folha (não o barrel) para evitar ciclo.
  */
-export type UserRole = 'admin' | 'franchisee' | 'representative' | 'technician' | 'customer'
+import { type AccessScope, type UserRole, toAccessScope, toUserRole } from '@/shared/access/access-scope'
 
-export type AccessScope = 'global' | 'franchise' | 'representative' | 'technician' | 'customer'
+export type { AccessScope, UserRole }
 
 export interface AuthUser {
   id: string
@@ -30,30 +34,6 @@ export interface AuthUserJson {
   franchiseId?: string | null
   representativeId?: string | null
   permissions: string[]
-}
-
-const USER_ROLES: readonly UserRole[] = [
-  'admin',
-  'franchisee',
-  'representative',
-  'technician',
-  'customer',
-]
-
-const ACCESS_SCOPES: readonly AccessScope[] = [
-  'global',
-  'franchise',
-  'representative',
-  'technician',
-  'customer',
-]
-
-function toUserRole(value: string): UserRole {
-  return (USER_ROLES as readonly string[]).includes(value) ? (value as UserRole) : 'customer'
-}
-
-function toAccessScope(value: string): AccessScope {
-  return (ACCESS_SCOPES as readonly string[]).includes(value) ? (value as AccessScope) : 'customer'
 }
 
 export function authUserFromJson(json: AuthUserJson): AuthUser {

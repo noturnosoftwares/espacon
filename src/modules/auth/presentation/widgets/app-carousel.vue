@@ -50,7 +50,7 @@ const hasControls = computed(() => canPrev.value || canNext.value)
 <template>
   <div class="flex flex-col gap-3">
     <div class="flex items-center justify-between">
-      <h3 class="text-sm font-semibold uppercase tracking-wide text-noturno-grey-light">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-content-muted">
         Ecossistema Noturno
       </h3>
       <div v-if="hasControls" class="flex gap-1.5">
@@ -58,7 +58,7 @@ const hasControls = computed(() => canPrev.value || canNext.value)
           type="button"
           :disabled="!canPrev"
           aria-label="Anterior"
-          class="flex h-7 w-7 items-center justify-center rounded-md border border-noturno-grey-light-clean-3 text-noturno-grey-light transition-colors hover:border-noturno-orange hover:text-noturno-orange disabled:opacity-30 disabled:hover:border-noturno-grey-light-clean-3 disabled:hover:text-noturno-grey-light outline-none"
+          class="flex h-7 w-7 items-center justify-center rounded-md border border-line text-content-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-30 disabled:hover:border-line disabled:hover:text-content-muted outline-none"
           @click="scrollByCards(-1)"
         >
           <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i>
@@ -67,7 +67,7 @@ const hasControls = computed(() => canPrev.value || canNext.value)
           type="button"
           :disabled="!canNext"
           aria-label="Próximo"
-          class="flex h-7 w-7 items-center justify-center rounded-md border border-noturno-grey-light-clean-3 text-noturno-grey-light transition-colors hover:border-noturno-orange hover:text-noturno-orange disabled:opacity-30 disabled:hover:border-noturno-grey-light-clean-3 disabled:hover:text-noturno-grey-light outline-none"
+          class="flex h-7 w-7 items-center justify-center rounded-md border border-line text-content-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-30 disabled:hover:border-line disabled:hover:text-content-muted outline-none"
           @click="scrollByCards(1)"
         >
           <i class="pi pi-chevron-right text-xs" aria-hidden="true"></i>
@@ -83,28 +83,28 @@ const hasControls = computed(() => canPrev.value || canNext.value)
       <li
         v-for="app in apps"
         :key="app.id"
-        class="flex w-44 shrink-0 snap-start flex-col gap-2 rounded-xl border border-noturno-grey-light-clean-3 bg-noturno-black-2/70 p-4 transition-colors hover:border-noturno-orange/40"
+        class="flex w-44 shrink-0 snap-start flex-col gap-2 rounded-xl border border-line bg-surface-1/70 p-4 transition-colors hover:border-accent/40"
       >
         <div class="flex items-center justify-between">
           <span
-            class="flex h-9 w-9 items-center justify-center rounded-lg bg-noturno-black-secondary text-noturno-orange"
+            class="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-canvas text-accent"
             aria-hidden="true"
           >
             <i :class="overviewIconClass(app.icon)"></i>
           </span>
           <span
             class="flex items-center gap-1 text-[0.65rem] font-medium uppercase tracking-wide"
-            :class="app.status === 'active' ? 'text-noturno-green' : 'text-noturno-grey-light'"
+            :class="app.status === 'active' ? 'text-success' : 'text-content-muted'"
           >
             <span
               v-if="app.status === 'active'"
-              class="inline-block h-1.5 w-1.5 rounded-full bg-noturno-green"
+              class="inline-block h-1.5 w-1.5 rounded-full bg-success"
             ></span>
             {{ STATUS_LABEL[app.status] }}
           </span>
         </div>
-        <div class="text-sm font-semibold text-noturno-white">{{ app.name }}</div>
-        <p class="text-xs leading-relaxed text-noturno-grey-light">{{ app.description }}</p>
+        <div class="text-sm font-semibold text-content">{{ app.name }}</div>
+        <p class="text-xs leading-relaxed text-content-muted">{{ app.description }}</p>
       </li>
     </ul>
   </div>

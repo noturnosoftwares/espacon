@@ -32,7 +32,7 @@ onMounted(() => {
       <!-- Loading -->
       <div
         v-if="store.loading"
-        class="flex flex-col items-center justify-center gap-3 py-24 text-noturno-grey-light"
+        class="flex flex-col items-center justify-center gap-3 py-24 text-content-muted"
       >
         <i class="pi pi-spinner animate-spin text-2xl" aria-hidden="true"></i>
         <span class="text-sm">Carregando painel…</span>
@@ -41,13 +41,13 @@ onMounted(() => {
       <!-- Erro -->
       <div
         v-else-if="store.hasError"
-        class="flex flex-col items-center justify-center gap-2 py-24 text-center text-noturno-grey-light"
+        class="flex flex-col items-center justify-center gap-2 py-24 text-center text-content-muted"
       >
         <i class="pi pi-cloud text-2xl" aria-hidden="true"></i>
         <p class="text-sm">{{ store.errorMessage ?? 'Não foi possível carregar o painel.' }}</p>
         <button
           type="button"
-          class="text-sm text-noturno-orange transition-colors hover:text-noturno-orange-dark outline-none focus-visible:underline"
+          class="text-sm text-accent transition-colors hover:text-accent-hover outline-none focus-visible:underline"
           @click="store.load()"
         >
           Tentar novamente

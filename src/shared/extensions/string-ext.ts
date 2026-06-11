@@ -17,6 +17,23 @@ export function normalizeText(value: string): string {
     .trim()
 }
 
+/**
+ * Normaliza a **descrição de um recurso** para servir de chave de autorização:
+ * MAIÚSCULAS, sem acento e com espaços internos colapsados. É a defesa do
+ * frontend para casar com segurança a `key` da permissão (ver spec
+ * `users-and-permissions`); o backend padroniza no mesmo formato.
+ *
+ * Ex.: `"Cadastro de Cliente"` → `"CADASTRO DE CLIENTE"`.
+ */
+export function normalizePermissionKey(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /** Converte string (com vírgula ou ponto decimal) em número, ou null se inválida. */
 export function toNumber(value: string): number | null {
   const normalized = value.trim().replace(/\./g, '').replace(',', '.')

@@ -25,7 +25,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 <template>
   <div class="relative w-full max-w-xl">
     <i
-      class="pi pi-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-noturno-grey-light"
+      class="pi pi-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-muted"
       aria-hidden="true"
     ></i>
     <input
@@ -33,10 +33,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       type="search"
       aria-label="Busca global"
       placeholder="Buscar cliente, contrato, licença, chamado..."
-      class="w-full rounded-xl border border-noturno-grey-light-clean-3 bg-noturno-black-2 py-2.5 pl-10 pr-16 text-sm text-noturno-white placeholder:text-noturno-grey-light outline-none transition-colors focus-visible:border-noturno-orange focus-visible:ring-1 focus-visible:ring-noturno-orange"
+      class="w-full rounded-xl border border-line bg-surface-1 py-2.5 pl-10 pr-16 text-sm text-content placeholder:text-content-muted outline-none transition-colors focus-visible:border-accent focus-visible:ring-1 focus-visible:ring-accent"
     />
     <kbd
-      class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-noturno-grey-light-clean-3 bg-noturno-black px-1.5 py-0.5 text-[0.65rem] font-medium text-noturno-grey-light"
+      class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-line bg-surface-canvas px-1.5 py-0.5 text-[0.65rem] font-medium text-content-muted"
     >
       Ctrl + K
     </kbd>

@@ -20,18 +20,71 @@ const router = createRouter({
       meta: { guestOnly: true },
     },
     {
-      path: '/dashboard',
-      name: 'dashboard',
-      // Home — tela principal (ver `docs/specifications/home/README.md`).
-      component: () => import('@/modules/home/presentation/pages/home-page.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
       path: '/recuperar-senha',
       name: 'password-recovery',
       // Placeholder até a spec `docs/specifications/auth/password-recovery.md`.
       component: () => import('@/app/welcome-page.vue'),
       meta: { guestOnly: true },
+    },
+
+    /*
+     * Casca da aplicação autenticada (Design System §8.9): toda tela logada
+     * renderiza dentro do `AppShell` (sidebar + topbar). Os filhos usam caminhos
+     * absolutos, então a URL fica limpa (`/dashboard`, `/usuarios`) — o `/app` do
+     * pai não aparece na barra de endereço.
+     */
+    {
+      path: '/app',
+      component: () => import('@/modules/home/presentation/widgets/app-shell.vue'),
+      meta: { requiresAuth: true },
+      redirect: { name: 'dashboard' },
+      children: [
+        {
+          path: '/dashboard',
+          name: 'dashboard',
+          // Home — tela principal (ver `docs/specifications/home/README.md`).
+          component: () => import('@/modules/home/presentation/pages/home-page.vue'),
+          meta: { requiresAuth: true },
+        },
+
+        // Usuários, Perfis e Permissões (ver spec `users-and-permissions` / ADR-008).
+        {
+          path: '/usuarios',
+          name: 'users',
+          component: () => import('@/modules/users/presentation/pages/users-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/usuarios/novo',
+          name: 'user-new',
+          component: () => import('@/modules/users/presentation/pages/user-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/usuarios/:id',
+          name: 'user-edit',
+          component: () => import('@/modules/users/presentation/pages/user-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/perfis',
+          name: 'user-profiles',
+          component: () => import('@/modules/users/presentation/pages/user-profiles-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/perfis/novo',
+          name: 'user-profile-new',
+          component: () => import('@/modules/users/presentation/pages/user-profile-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/perfis/:id',
+          name: 'user-profile-edit',
+          component: () => import('@/modules/users/presentation/pages/user-profile-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+      ],
     },
   ],
 })

@@ -30,24 +30,24 @@ const citiesOnMap = computed(() => store.map.length)
 
 <template>
   <section
-    class="relative flex h-full flex-col overflow-hidden rounded-2xl border border-noturno-grey-light-clean-3 bg-gradient-to-br from-noturno-black-secondary to-noturno-black-2 p-6 lg:p-8"
+    class="relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-surface-canvas to-surface-1 p-6 lg:p-8"
     aria-label="Panorama da rede Noturno"
   >
     <!-- Brilho dourado sutil (premium, discreto) -->
     <div
-      class="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-noturno-orange/10 blur-3xl"
+      class="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl"
       aria-hidden="true"
     ></div>
 
     <!-- Cabeçalho institucional -->
     <header class="relative mb-6">
-      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-noturno-orange">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
         Noturno Softwares
       </p>
-      <h2 class="mt-1 text-xl font-semibold text-noturno-white lg:text-2xl">
+      <h2 class="mt-1 text-xl font-semibold text-content lg:text-2xl">
         Uma rede, vários sistemas.
       </h2>
-      <p class="mt-1 text-sm text-noturno-grey-light">
+      <p class="mt-1 text-sm text-content-muted">
         Tecnologia, presença nacional e um ecossistema de produtos integrados.
       </p>
     </header>
@@ -55,7 +55,7 @@ const citiesOnMap = computed(() => store.map.length)
     <!-- Estado: carregando -->
     <div
       v-if="store.loading"
-      class="relative flex flex-1 flex-col items-center justify-center gap-3 text-noturno-grey-light"
+      class="relative flex flex-1 flex-col items-center justify-center gap-3 text-content-muted"
     >
       <i class="pi pi-spinner animate-spin text-2xl" aria-hidden="true"></i>
       <span class="text-sm">Carregando panorama…</span>
@@ -64,13 +64,13 @@ const citiesOnMap = computed(() => store.map.length)
     <!-- Estado: erro discreto (login segue funcionando) -->
     <div
       v-else-if="store.hasError"
-      class="relative flex flex-1 flex-col items-center justify-center gap-2 text-center text-noturno-grey-light"
+      class="relative flex flex-1 flex-col items-center justify-center gap-2 text-center text-content-muted"
     >
       <i class="pi pi-cloud text-2xl" aria-hidden="true"></i>
       <p class="text-sm">{{ store.errorMessage ?? 'Não foi possível carregar.' }}</p>
       <button
         type="button"
-        class="text-sm text-noturno-orange transition-colors hover:text-noturno-orange-dark outline-none focus-visible:underline"
+        class="text-sm text-accent transition-colors hover:text-accent-hover outline-none focus-visible:underline"
         @click="store.load()"
       >
         Tentar novamente
@@ -85,15 +85,15 @@ const citiesOnMap = computed(() => store.map.length)
       <!-- Mapa discreto de pontos de atuação -->
       <div v-if="store.map.length" class="flex flex-col gap-2">
         <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold uppercase tracking-wide text-noturno-grey-light">
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-content-muted">
             Pontos de atuação
           </h3>
-          <span class="text-xs text-noturno-grey-light">
+          <span class="text-xs text-content-muted">
             {{ citiesOnMap }} {{ citiesOnMap === 1 ? 'cidade' : 'cidades' }}
           </span>
         </div>
         <div
-          class="h-44 overflow-hidden rounded-xl border border-noturno-grey-light-clean-3 bg-noturno-black-2/60 lg:h-52"
+          class="h-44 overflow-hidden rounded-xl border border-line bg-surface-1/60 lg:h-52"
         >
           <MapPreview :points="store.map" />
         </div>
@@ -106,7 +106,7 @@ const citiesOnMap = computed(() => store.map.length)
     <!-- Estado: vazio -->
     <div
       v-else
-      class="relative flex flex-1 items-center justify-center text-sm text-noturno-grey-light"
+      class="relative flex flex-1 items-center justify-center text-sm text-content-muted"
     >
       Sem dados de panorama no momento.
     </div>

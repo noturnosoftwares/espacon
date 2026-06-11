@@ -11,38 +11,38 @@ import type { AccentTone, BusinessCategory, TrendTone } from '../../domain/model
 
 /** Chip do ícone (texto + leve preenchimento) por acento. */
 const ACCENT_CHIP: Readonly<Record<AccentTone, string>> = {
-  orange: 'bg-noturno-orange/10 text-noturno-orange',
-  blue: 'bg-noturno-blue-dark/10 text-noturno-blue-dark',
-  blueLight: 'bg-noturno-blue-light/10 text-noturno-blue-light',
-  green: 'bg-noturno-green/10 text-noturno-green',
-  yellow: 'bg-noturno-yellow/10 text-noturno-yellow',
-  red: 'bg-noturno-red/10 text-noturno-red',
+  orange: 'bg-accent/10 text-accent',
+  blue: 'bg-info/10 text-info',
+  blueLight: 'bg-info/10 text-info',
+  green: 'bg-success/10 text-success',
+  yellow: 'bg-warning/10 text-warning',
+  red: 'bg-danger/10 text-danger',
 }
 
 /** Badge de contagem (borda + texto) por acento. */
 const ACCENT_BADGE: Readonly<Record<AccentTone, string>> = {
-  orange: 'border-noturno-orange/40 text-noturno-orange',
-  blue: 'border-noturno-blue-dark/40 text-noturno-blue-dark',
-  blueLight: 'border-noturno-blue-light/40 text-noturno-blue-light',
-  green: 'border-noturno-green/40 text-noturno-green',
-  yellow: 'border-noturno-yellow/40 text-noturno-yellow',
-  red: 'border-noturno-red/40 text-noturno-red',
+  orange: 'border-accent/40 text-accent',
+  blue: 'border-info/40 text-info',
+  blueLight: 'border-info/40 text-info',
+  green: 'border-success/40 text-success',
+  yellow: 'border-warning/40 text-warning',
+  red: 'border-danger/40 text-danger',
 }
 
 /** Apenas a cor do texto/ícone por acento. */
 const ACCENT_TEXT: Readonly<Record<AccentTone, string>> = {
-  orange: 'text-noturno-orange',
-  blue: 'text-noturno-blue-dark',
-  blueLight: 'text-noturno-blue-light',
-  green: 'text-noturno-green',
-  yellow: 'text-noturno-yellow',
-  red: 'text-noturno-red',
+  orange: 'text-accent',
+  blue: 'text-info',
+  blueLight: 'text-info',
+  green: 'text-success',
+  yellow: 'text-warning',
+  red: 'text-danger',
 }
 
 const TREND_TEXT: Readonly<Record<TrendTone, string>> = {
-  positive: 'text-noturno-green',
-  critical: 'text-noturno-red',
-  neutral: 'text-noturno-grey-light',
+  positive: 'text-success',
+  critical: 'text-danger',
+  neutral: 'text-content-muted',
 }
 
 const CATEGORY_LABEL: Readonly<Record<BusinessCategory, string>> = {
@@ -55,20 +55,20 @@ const CATEGORY_LABEL: Readonly<Record<BusinessCategory, string>> = {
 
 /** Pílula da categoria (texto + leve preenchimento). */
 const CATEGORY_BADGE: Readonly<Record<BusinessCategory, string>> = {
-  atendimento: 'bg-noturno-blue-light/15 text-noturno-blue-light',
-  sistema: 'bg-noturno-blue-dark/15 text-noturno-blue-dark',
-  financeiro: 'bg-noturno-green/15 text-noturno-green',
-  pessoal: 'bg-noturno-orange/15 text-noturno-orange',
-  comercial: 'bg-noturno-yellow/15 text-noturno-yellow',
+  atendimento: 'bg-info/15 text-info',
+  sistema: 'bg-info/15 text-info',
+  financeiro: 'bg-success/15 text-success',
+  pessoal: 'bg-accent/15 text-accent',
+  comercial: 'bg-warning/15 text-warning',
 }
 
 /** Apenas a cor do texto/ícone por categoria. */
 const CATEGORY_TEXT: Readonly<Record<BusinessCategory, string>> = {
-  atendimento: 'text-noturno-blue-light',
-  sistema: 'text-noturno-blue-dark',
-  financeiro: 'text-noturno-green',
-  pessoal: 'text-noturno-orange',
-  comercial: 'text-noturno-yellow',
+  atendimento: 'text-info',
+  sistema: 'text-info',
+  financeiro: 'text-success',
+  pessoal: 'text-accent',
+  comercial: 'text-warning',
 }
 
 export const accentChipClass = (tone: AccentTone): string => ACCENT_CHIP[tone]

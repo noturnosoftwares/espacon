@@ -16,7 +16,7 @@ defineProps<{ favorites: FavoriteShortcut[] }>()
     <template #action>
       <button
         type="button"
-        class="rounded-lg border border-noturno-grey-light-clean-3 px-2.5 py-1 text-xs text-noturno-grey-light transition-colors hover:border-noturno-orange/40 hover:text-noturno-white"
+        class="rounded-lg border border-line px-2.5 py-1 text-xs text-content-muted transition-colors hover:border-accent/40 hover:text-content"
       >
         Gerenciar
       </button>
@@ -28,10 +28,10 @@ defineProps<{ favorites: FavoriteShortcut[] }>()
         :key="fav.id"
         type="button"
         :title="fav.label"
-        class="group flex flex-col items-center gap-2 rounded-xl border border-noturno-grey-light-clean-3 bg-noturno-black-2/40 px-2 py-4 text-center transition-all hover:-translate-y-0.5 hover:border-noturno-orange/40 hover:bg-noturno-black-2 hover:shadow-lg hover:shadow-black/30"
+        class="group flex flex-col items-center gap-2 rounded-xl border border-line bg-surface-1/40 px-2 py-4 text-center transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-1 hover:shadow-lg hover:shadow-black/30"
       >
-        <i :class="iconClass(fav.icon)" class="text-xl text-noturno-orange" aria-hidden="true"></i>
-        <span class="text-xs font-medium leading-tight text-noturno-grey-light-clean">
+        <i :class="iconClass(fav.icon)" class="text-xl text-accent" aria-hidden="true"></i>
+        <span class="text-xs font-medium leading-tight text-content-soft">
           {{ fav.label }}
         </span>
       </button>
@@ -40,7 +40,7 @@ defineProps<{ favorites: FavoriteShortcut[] }>()
       <button
         type="button"
         title="Adicionar favorito"
-        class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-noturno-grey-light-clean-3 px-2 py-4 text-center text-noturno-grey-light transition-colors hover:border-noturno-orange/50 hover:text-noturno-orange"
+        class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line px-2 py-4 text-center text-content-muted transition-colors hover:border-accent/50 hover:text-accent"
       >
         <i class="pi pi-plus text-xl" aria-hidden="true"></i>
         <span class="text-xs font-medium leading-tight">Adicionar favorito</span>

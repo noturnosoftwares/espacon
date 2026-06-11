@@ -38,19 +38,19 @@ function capitalize(value: string): string {
 <template>
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-noturno-white lg:text-3xl">
+      <h1 class="text-2xl font-bold text-content lg:text-3xl">
         {{ greetingWord }}, {{ firstName }}! <span aria-hidden="true">👋</span>
       </h1>
-      <p class="mt-1 text-sm text-noturno-grey-light">
-        Bem-vindo ao <span class="font-semibold text-noturno-orange">EspaçoN</span>, sua central de
+      <p class="mt-1 text-sm text-content-muted">
+        Bem-vindo ao <span class="font-semibold text-accent">EspaçoN</span>, sua central de
         gestão da Noturno Softwares.
       </p>
     </div>
 
-    <div class="flex items-center gap-2 text-right text-noturno-grey-light">
+    <div class="flex items-center gap-2 text-right text-content-muted">
       <i class="pi pi-calendar text-base" aria-hidden="true"></i>
       <div class="leading-tight">
-        <div class="text-sm font-medium text-noturno-grey-light-clean">{{ capitalize(longDate) }}</div>
+        <div class="text-sm font-medium text-content-soft">{{ capitalize(longDate) }}</div>
         <div class="text-xs">{{ capitalize(weekday) }}</div>
       </div>
     </div>

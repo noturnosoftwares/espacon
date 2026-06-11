@@ -13,7 +13,7 @@ import ProfileMenu from './profile-menu.vue'
 
 <template>
   <header
-    class="flex h-16 shrink-0 items-center gap-4 border-b border-noturno-grey-light-clean-3 bg-noturno-black-secondary px-4 lg:px-6"
+    class="flex h-16 shrink-0 items-center gap-4 border-b border-line bg-surface-canvas px-4 lg:px-6"
   >
     <!-- Busca global (à esquerda, ampla) -->
     <div class="flex flex-1 items-center">
@@ -27,7 +27,7 @@ import ProfileMenu from './profile-menu.vue'
         type="button"
         title="Ajuda — em breve"
         aria-label="Ajuda"
-        class="flex h-10 w-10 items-center justify-center rounded-xl border border-noturno-grey-light-clean-3 bg-noturno-black-2 text-noturno-grey-light transition-colors hover:border-noturno-orange/50 hover:text-noturno-white outline-none focus-visible:ring-2 focus-visible:ring-noturno-orange"
+        class="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-1 text-content-muted transition-colors hover:border-accent/50 hover:text-content outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <i class="pi pi-question-circle" aria-hidden="true"></i>
       </button>

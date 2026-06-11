@@ -13,7 +13,7 @@ const formattedValue = props.indicator.value.toLocaleString('pt-BR')
 
 <template>
   <div
-    class="flex items-start gap-3 rounded-2xl border border-noturno-grey-light-clean-3 bg-noturno-black-secondary p-4"
+    class="flex items-start gap-3 rounded-2xl border border-line bg-surface-canvas p-4"
   >
     <span
       class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
@@ -22,10 +22,10 @@ const formattedValue = props.indicator.value.toLocaleString('pt-BR')
       <i :class="iconClass(indicator.icon)" class="text-xl" aria-hidden="true"></i>
     </span>
     <div class="min-w-0">
-      <div class="text-2xl font-bold leading-tight text-noturno-white tabular-nums">
+      <div class="text-2xl font-bold leading-tight text-content tabular-nums">
         {{ formattedValue }}
       </div>
-      <div class="text-xs text-noturno-grey-light">{{ indicator.label }}</div>
+      <div class="text-xs text-content-muted">{{ indicator.label }}</div>
       <div
         v-if="indicator.trend"
         class="mt-1 text-xs font-medium"

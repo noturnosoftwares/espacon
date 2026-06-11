@@ -41,6 +41,65 @@
   --color-noturno-blue: #036ae3;
   --color-noturno-blue-dark: #3fa5ee;
   --color-noturno-blue-light: #21a5ee;
+
+  /*
+   * Camada SEMÂNTICA (Design System §1–6). Componentes consomem SEMPRE estes
+   * tokens — nunca os primitivos `noturno-*` direto. Trocar de tema = remapear
+   * aqui, sem renomear nada na UI. Geram utilitários Tailwind (ex.: `bg-surface-1`,
+   * `text-muted`, `border-default`, `text-on-accent`, `rounded-card`).
+   */
+
+  /*
+   * Nomes escolhidos para gerar utilitários Tailwind ergonômicos, sem duplicar o
+   * prefixo da categoria: superfícies → `bg-surface-1`; texto → `text-content`,
+   * `text-content-soft`, `text-content-muted`, `text-on-accent`; bordas →
+   * `border-line`, `border-line-subtle`, `border-line-strong`.
+   */
+
+  /* Superfícies — escada dark-first (fundo → topo). */
+  --color-surface-canvas: var(--color-noturno-black-secondary);
+  --color-surface-1: var(--color-noturno-black-2);
+  --color-surface-2: var(--color-noturno-grey-light-clean-2);
+  --color-surface-3: var(--color-noturno-grey-light-clean-3);
+
+  /* Texto (content). */
+  --color-content: var(--color-noturno-white);
+  --color-content-soft: var(--color-noturno-grey-light-clean);
+  --color-content-muted: var(--color-noturno-grey-light);
+  --color-on-accent: var(--color-noturno-black);
+
+  /* Bordas (line). Foco usa `accent`. */
+  --color-line-subtle: color-mix(in oklab, var(--color-noturno-grey-light-clean-3) 40%, transparent);
+  --color-line: var(--color-noturno-grey-light-clean-3);
+  --color-line-strong: var(--color-noturno-grey-light);
+
+  /* Marca / accent. */
+  --color-accent: var(--color-noturno-orange);
+  --color-accent-hover: var(--color-noturno-orange-dark);
+  --color-accent-soft: color-mix(in oklab, var(--color-noturno-orange) 14%, transparent);
+
+  /* Feedback (cor cheia + tint @14%). */
+  --color-success: var(--color-noturno-green);
+  --color-success-soft: color-mix(in oklab, var(--color-noturno-green) 14%, transparent);
+  --color-danger: var(--color-noturno-red);
+  --color-danger-soft: color-mix(in oklab, var(--color-noturno-red) 14%, transparent);
+  --color-warning: var(--color-noturno-yellow);
+  --color-warning-soft: color-mix(in oklab, var(--color-noturno-yellow) 14%, transparent);
+  --color-info: var(--color-noturno-blue-light);
+  --color-info-soft: color-mix(in oklab, var(--color-noturno-blue) 14%, transparent);
+
+  /* Raio de borda (§5). */
+  --radius-field: 10px;
+  --radius-card: 14px;
+  --radius-panel: 20px;
+
+  /* Movimento (§7). */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
 }
 
 :root {
@@ -87,4 +146,104 @@ body {
 }
 .scrollbar-noturno:hover::-webkit-scrollbar-thumb {
   background: var(--color-noturno-orange-dark);
+}
+
+/*
+ * Helpers do Design System (§6–7). Profundidade no escuro = superfície + borda;
+ * sombra apenas em camadas flutuantes. Movimento sutil, sempre respeitando
+ * `prefers-reduced-motion`.
+ */
+
+/*
+ * Correção de alinhamento do ToggleSwitch (PrimeVue v4.5.5). O CSS estrutural do
+ * componente posiciona o thumb com `position:absolute; top:50%`, mas não declara
+ * contexto de posicionamento na raiz — sem ele o thumb resolve contra um
+ * ancestral externo, caindo na vertical e deslocando na horizontal. Damos o
+ * contexto na raiz e centramos o thumb na vertical de forma robusta (translate,
+ * independente do cálculo por token). Apenas posicionamento — cor/tamanho seguem
+ * o preset. Regras não-layerizadas → vencem a layer `primevue`.
+ */
+.p-toggleswitch {
+  position: relative;
+}
+.p-toggleswitch .p-toggleswitch-handle {
+  top: 50%;
+  margin-block-start: 0;
+  transform: translateY(-50%);
+}
+
+/*
+ * Toast (BaseToast): o wrapper padrão do PrimeVue (`.p-toast-message`) traz
+ * fundo/borda/sombra próprios por severidade que aparecem ATRÁS do nosso card
+ * (azul "vazando" nos cantos / brilho estourando). Zeramos esse chrome para que
+ * só o card do `BaseToast` seja visível. Não altera posição nem conteúdo.
+ */
+.p-toast-message {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Anel de foco dourado padrão (campos, botões, linhas clicáveis). */
+.ds-focus-ring {
+  outline: none;
+}
+.ds-focus-ring:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Lift sutil de card interativo no hover (§7). */
+.ds-card-lift {
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
+}
+.ds-card-lift:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-line));
+  box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--color-accent) 30%, transparent);
+}
+
+/* Pulse gentil para ícone de empty-state (§7/9.1). */
+@keyframes ds-soft-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+.ds-soft-pulse {
+  animation: ds-soft-pulse 1.8s var(--ease-standard) infinite;
+}
+
+/* Entrada suave (reveal) de cards/listas. */
+@keyframes ds-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ds-rise-in {
+  animation: ds-rise-in var(--duration-slow) var(--ease-enter) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-card-lift,
+  .ds-soft-pulse,
+  .ds-rise-in {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
