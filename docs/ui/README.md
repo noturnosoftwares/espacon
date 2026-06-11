@@ -96,6 +96,22 @@ Todo grid relevante deve prever:
   embrulhar num base (`BaseSelect`) que força a anatomia do campo.
 * Rótulo/hint/erro via `FormField`; booleanos em `Switch` (não select de 2 opções).
 
+## Filtros (cache local × requisição)
+
+> Lei corporativa em `../template/docs/design-system/README.md` §9.1.
+
+Em telas de **CRUD/pesquisa** (parâmetros + botão buscar):
+
+* **Mudar um filtro NÃO requisita o backend.** Ele **filtra o cache localmente**
+  (os dados já carregados) — feedback instantâneo, sem ida ao servidor.
+* **Os filtros são parâmetros da requisição.** Quando há uma busca (Enter/Buscar)
+  ou carga por scroll, os **valores atuais dos filtros** vão no request.
+* A **busca por termo** é a ação que dispara o request (§9.1); os **filtros**
+  apenas refinam localmente e parametrizam a próxima requisição.
+* Exemplo (Usuários): listei os usuários; mudar **Situação** filtra a lista
+  carregada na hora (local); a próxima busca leva `active` como parâmetro. O grid
+  lê uma **visão local** (`displayedUsers`) do cache do store.
+
 ## Responsividade
 
 O sistema deve funcionar bem em:

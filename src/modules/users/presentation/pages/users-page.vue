@@ -31,8 +31,11 @@ const store = useUsersStore()
 
 const search = ref('')
 
-// Filtro de **situação** (ativo/inativo). Modelado como chave de UI e convertido
-// para o contrato `active?: boolean | null` ao aplicar (ausente/null = todas).
+// Filtro de **situação** (ativo/inativo). Regra geral de filtros (docs/ui):
+// **mudar o filtro NÃO requisita o backend** — ele filtra o cache localmente
+// (`displayedUsers`). Os filtros só vão ao backend **como parâmetros** quando há
+// requisição (Buscar/Enter/scroll). Convertido para o contrato
+// `active?: boolean | null` (ausente/null = todas).
 type Situation = 'all' | 'active' | 'inactive'
 const SITUATION_OPTIONS: { label: string; value: Situation }[] = [
   { label: 'Todas', value: 'all' },
@@ -48,10 +51,8 @@ function activeToSituation(active: boolean | null | undefined): Situation {
   return active === true ? 'active' : active === false ? 'inactive' : 'all'
 }
 
-/** Há algum filtro aplicado (termo ou situação)? Habilita o "Limpar". */
-const hasActiveFilters = computed(
-  () => !!store.currentQuery || store.filters?.active != null,
-)
+/** Há algum filtro aplicado (termo já buscado ou situação local)? Habilita o "Limpar". */
+const hasActiveFilters = computed(() => !!store.currentQuery || situation.value !== 'all')
 
 // Preserva o contexto ao voltar de um registro: se já houve busca, restaura o
 // termo e a situação e **atualiza** a lista (refletindo inclusões/edições/
@@ -80,12 +81,21 @@ const columns = [
   { field: 'active', label: 'Situação', sortable: true, width: '10rem' },
 ]
 
+// Visão **local** do cache: aplica a situação sobre os itens já carregados, sem
+// requisitar o backend (regra geral de filtros — docs/ui). O grid lê isto.
+const displayedUsers = computed(() => {
+  const active = situationToActive(situation.value)
+  if (active === null) return store.items
+  return store.items.filter((u) => u.active === active)
+})
+
 const activeCount = computed(() => store.items.filter((u) => u.active).length)
 const inactiveCount = computed(() => store.items.length - activeCount.value)
 
 /**
- * Aplica os filtros atuais (termo + situação). O termo busca por Enter/botão
- * (§9.1 — nunca a cada tecla); a situação, sendo discreta, aplica na hora.
+ * **Requisição** ao backend (Buscar/Enter): leva o termo **e** os filtros atuais
+ * como parâmetros. O termo busca por Enter/botão (§9.1 — nunca a cada tecla);
+ * mudar a situação por si só **não** chama isto (filtra localmente).
  */
 function runSearch(): void {
   store.applyFilters({
@@ -134,7 +144,8 @@ function openUser(user: User): void {
           @clear="runSearch"
         />
       </div>
-      <!-- Filtro Situação: discreto, aplica na hora. Mesma anatomia dos campos. -->
+      <!-- Filtro Situação: filtra o cache **localmente** ao mudar (sem requisição).
+           Vai ao backend como parâmetro só na próxima busca. Mesma anatomia dos campos. -->
       <div class="w-40">
         <BaseSelect
           v-model="situation"
@@ -142,7 +153,6 @@ function openUser(user: User): void {
           option-label="label"
           option-value="value"
           aria-label="Filtrar por situação"
-          @change="runSearch"
         />
       </div>
       <!-- Ações -->
@@ -191,9 +201,10 @@ function openUser(user: User): void {
         </BaseCard>
       </div>
 
-      <!-- Grid de leitura: linha clicável, sem ações inline, scroll infinito. -->
+      <!-- Grid de leitura: linha clicável, sem ações inline, scroll infinito.
+           `rows` é a visão local (cache filtrado pela situação). -->
       <BaseDataTable
-        :rows="store.items"
+        :rows="displayedUsers"
         :columns="columns"
         :loading="store.loading"
         :has-more="store.hasMore"

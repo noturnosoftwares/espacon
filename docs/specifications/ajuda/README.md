@@ -77,9 +77,10 @@ Conhecimento).
     registros carregam sozinhos (lotes de 30), com indicador no rodapé enquanto
     houver dados — **não há botões de página**.
   - **Filtro de Situação** (só em Usuários) — escolha **Todas**, **Ativos** ou
-    **Inativos**; o filtro **aplica na hora** (não precisa de Enter) e combina com
-    o termo digitado. O botão **"Limpar"** ao lado da busca aparece sempre que
-    houver termo ou situação aplicados e reseta tudo, recarregando a lista.
+    **Inativos**; o filtro **refina a lista já carregada na hora** (não precisa de
+    Enter e **não** refaz a consulta) e é enviado ao servidor **como parâmetro** na
+    próxima busca. O botão **"Limpar"** ao lado da busca aparece sempre que houver
+    termo ou situação aplicados e reseta tudo, recarregando a lista.
   - **Sem resultados** — a tela mostra o termo buscado **em vermelho** e o botão
     **"Limpar filtros"**, que limpa o termo **e** a situação e recarrega a lista
     completa.

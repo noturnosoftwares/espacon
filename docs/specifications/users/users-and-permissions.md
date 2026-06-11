@@ -147,8 +147,10 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
 
 - `/usuarios` — lista (grid com busca/ordenação/**scroll infinito** (lote de 30 —
   template ADR-002)/loading/erro). **Filtro de Situação** (Todas/Ativos/Inativos →
-  `UserFilters.active`): filtro discreto que **aplica na hora**; o termo segue por
-  Enter (§9.1). Sem resultados: termo destacado em vermelho (`#FF2626`) + botão
+  `UserFilters.active`): **filtra o cache localmente** ao mudar (sem requisição —
+  regra de filtros §9.1) e vai ao backend **como parâmetro** na próxima busca; o
+  termo dispara a busca por Enter (§9.1). Sem resultados: termo destacado em
+  vermelho (`#FF2626`) + botão
   **"Limpar filtros"** (limpa termo **e** situação e recarrega). O botão "Limpar"
   na barra aparece sempre que houver qualquer filtro ativo; o contexto (termo +
   situação) é restaurado ao voltar de um registro.
