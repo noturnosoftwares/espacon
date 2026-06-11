@@ -16,13 +16,13 @@ import {
   useRouter,
   type RouteLocationNormalized,
 } from 'vue-router'
-import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { type AccessScope, type Permission, type UserRole } from '@/shared/access'
 import { useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
+  BaseSelect,
   BaseTextField,
   ConfirmDialog,
   FormField,
@@ -380,21 +380,19 @@ function onCancelDiscard(): void {
               @update:model-value="(v) => (employeeId = v != null ? Number(v) : null)"
             />
             <FormField label="Papel">
-              <Select
+              <BaseSelect
                 v-model="role"
                 :options="ROLE_OPTIONS"
-                optionLabel="label"
-                optionValue="value"
-                fluid
+                option-label="label"
+                option-value="value"
               />
             </FormField>
             <FormField label="Escopo de acesso" hint="Filtra os dados por matriz/franquia/representante.">
-              <Select
+              <BaseSelect
                 v-model="accessScope"
                 :options="SCOPE_OPTIONS"
-                optionLabel="label"
-                optionValue="value"
-                fluid
+                option-label="label"
+                option-value="value"
               />
             </FormField>
             <label

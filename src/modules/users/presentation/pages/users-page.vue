@@ -12,11 +12,11 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import Select from 'primevue/select'
 import {
   BaseButton,
   BaseCard,
   BaseDataTable,
+  BaseSelect,
   EmptyState,
   PageContainer,
   SearchField,
@@ -122,28 +122,31 @@ function openUser(user: User): void {
       <BaseButton icon="pi-plus" label="Novo usuário" @click="goNew" />
     </header>
 
-    <!-- Busca + filtros -->
+    <!-- Busca + filtros. Ordem lógica (docs/ui): campos de entrada primeiro
+         (busca → situação), botões de ação ao final (Buscar → Limpar). -->
     <div class="flex w-full flex-wrap items-center gap-2">
-      <div class="flex min-w-0 flex-1 items-center gap-2 sm:max-w-xl">
+      <!-- Campo de busca -->
+      <div class="min-w-0 flex-1 sm:max-w-md">
         <SearchField
           v-model="search"
           placeholder="Buscar por nome, login ou e-mail"
           @search="runSearch"
           @clear="runSearch"
         />
-        <BaseButton variant="neutral" icon="pi-search" label="Buscar" @click="runSearch" />
       </div>
-      <!-- Situação: filtro discreto, aplica na hora. -->
-      <Select
-        v-model="situation"
-        :options="SITUATION_OPTIONS"
-        optionLabel="label"
-        optionValue="value"
-        aria-label="Filtrar por situação"
-        class="w-40"
-        @change="runSearch"
-      />
-      <!-- Limpar termo + filtros (aparece com qualquer filtro ativo). -->
+      <!-- Filtro Situação: discreto, aplica na hora. Mesma anatomia dos campos. -->
+      <div class="w-40">
+        <BaseSelect
+          v-model="situation"
+          :options="SITUATION_OPTIONS"
+          option-label="label"
+          option-value="value"
+          aria-label="Filtrar por situação"
+          @change="runSearch"
+        />
+      </div>
+      <!-- Ações -->
+      <BaseButton variant="neutral" icon="pi-search" label="Buscar" @click="runSearch" />
       <BaseButton
         v-if="hasActiveFilters"
         variant="neutral"

@@ -78,6 +78,24 @@ Todo grid relevante deve prever:
   vermelho (`#FF2626`) e oferecer **"Limpar pesquisa"** (ver Design System §9.1);
 * ações por linha quando necessário.
 
+## Campos (ordem e padronização)
+
+> Lei corporativa em `../template/docs/design-system/README.md` §8.1. Resumo
+> aplicado no EspaçoN:
+
+* **Ordem lógica.** Campos seguem a ordem natural de leitura/preenchimento; em
+  barras de pesquisa: **termo → filtros → ações**. Botões (Buscar/Limpar) vêm
+  **sempre ao final** — nunca um filtro depois do botão de ação. A ordem de **Tab**
+  acompanha (campo → campo → ação).
+* **Design único.** Todo campo usa o componente-base de `shared/widgets`
+  (`BaseTextField`, `SearchField`, `BaseSelect`, `LookupField`) com a **mesma
+  anatomia**: altura **40px**, borda `border-line-subtle`, raio `radius-field`
+  (10px), fundo `surface-1`, foco dourado. Campos lado a lado **nunca** têm
+  alturas/bordas diferentes.
+* **Nunca** usar controle de terceiros cru na tela (ex.: `Select` do PrimeVue):
+  embrulhar num base (`BaseSelect`) que força a anatomia do campo.
+* Rótulo/hint/erro via `FormField`; booleanos em `Switch` (não select de 2 opções).
+
 ## Responsividade
 
 O sistema deve funcionar bem em:
