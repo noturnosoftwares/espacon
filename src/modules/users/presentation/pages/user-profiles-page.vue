@@ -67,7 +67,7 @@ const columns = computed(() => [
     sortAccessor: (row: UserProfile) => row.permissions.length,
   },
   ...(isSelectMode.value
-    ? [{ field: 'actions', label: 'Ações', sortable: false, width: '11rem', align: 'right' as const }]
+    ? [{ field: 'actions', label: '', sortable: false, width: '4.5rem', align: 'right' as const }]
     : []),
 ])
 
@@ -197,10 +197,14 @@ function onRowActivate(profile: UserProfile): void {
              `@click.stop` evita disparar o gesto da linha. -->
         <template #cell-actions="{ row }">
           <span class="inline-flex justify-end" @click.stop @keydown.enter.stop>
+            <!-- Só ícone (o texto ocupava muito espaço); accent para destacar a
+                 única ação de abrir o registro no modo seleção. Hint via title. -->
             <BaseButton
-              variant="neutral"
+              variant="icon"
               icon="pi-eye"
-              label="Ver detalhes"
+              class="!text-accent hover:!bg-accent/15 hover:!text-accent-hover"
+              title="Ver detalhes"
+              aria-label="Ver detalhes"
               @click="openDetails(row as UserProfile)"
             />
           </span>

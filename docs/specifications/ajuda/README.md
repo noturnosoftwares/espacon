@@ -35,6 +35,24 @@ Conhecimento).
 
 ---
 
+## Recuperação de Senha
+
+- **O que faz**: solicita a redefinição da senha a partir do e-mail da conta.
+- **Onde acessar**: link **"Esqueci minha senha"** no login → rota `/recuperar-senha`.
+- **Como usar**: informe o e-mail e clique em **Enviar instruções**. Em seguida a
+  tela confirma que, **se houver uma conta** associada, as instruções serão
+  enviadas. Dá para **Reenviar para outro e-mail** ou **Voltar ao login**.
+- **Regras**:
+  - **Privacidade/anti-enumeração**: o sistema **nunca** informa se o e-mail
+    existe — a confirmação é sempre genérica.
+  - E-mail com formato inválido mostra erro e **não** envia.
+  - Nenhuma sessão é criada aqui.
+  - Fase atual **mock-first**: o envio é simulado (sempre "sucesso").
+- **Impactos**: módulo `src/modules/auth`; rota `/recuperar-senha`.
+- **Especificação**: `docs/specifications/auth/password-recovery.md`.
+
+---
+
 ## Home / Central de Gestão
 
 - **O que faz**: é a porta de entrada do sistema após o login — Header + Sidebar +
@@ -86,6 +104,14 @@ Conhecimento).
     completa.
   - **Cadastro/edição** — clique numa linha (ou **Novo usuário**). Os campos ficam
     agrupados por contexto; **Salvar/Cancelar** aparecem só quando há alteração.
+  - **Operador de caixa** — ao marcar "Operador" escolha o **tipo**: *ilimitado*
+    ou *limitado*. No **limitado**, o **Operador** é um **campo de busca** (não se
+    digita o código) que selecionará um operador cadastrado — a tela de cadastro de
+    operadores **ainda será implementada**; até lá o campo informa que está por vir.
+  - **Matriz de permissões** — acima da matriz há um **filtro** para achar um
+    recurso específico (por descrição ou código). Ele **refina a lista na hora**
+    (local, sem requisição); os toggles de coluna/sessão passam a agir sobre os
+    recursos visíveis e os contadores seguem mostrando o total.
   - **Perfil (modelo)** — é um **campo de busca**: clique para abrir a **própria
     listagem de perfis em modo seleção** (não há tela de busca separada). Pesquise,
     e **clique no perfil** (ou pressione **Enter**) para devolvê-lo ao cadastro;

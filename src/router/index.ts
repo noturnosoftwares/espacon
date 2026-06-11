@@ -4,11 +4,9 @@ import { makeSessionRepository } from '@/modules/auth/data/application'
 /**
  * Rotas do EspaçoN.
  *
- * Fase 2: a rota `/` é a tela de login (acesso + vitrine). `/dashboard` e
- * `/recuperar-senha` têm specs próprias (home e password-recovery) ainda não
- * implementadas — apontam, **provisoriamente**, para o placeholder de fundação
- * para que o fluxo de login (redirecionamento e link) funcione sem 404. Serão
- * substituídas quando suas specs forem implementadas.
+ * Fase 2: `/` é o login (acesso + vitrine), `/recuperar-senha` a recuperação de
+ * senha (spec `auth/password-recovery`) e `/dashboard` a home — todas
+ * implementadas. As telas logadas vivem dentro do `AppShell` (`/app`).
  */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,8 +20,8 @@ const router = createRouter({
     {
       path: '/recuperar-senha',
       name: 'password-recovery',
-      // Placeholder até a spec `docs/specifications/auth/password-recovery.md`.
-      component: () => import('@/app/welcome-page.vue'),
+      component: () =>
+        import('@/modules/auth/presentation/pages/password-recovery-page.vue'),
       meta: { guestOnly: true },
     },
 

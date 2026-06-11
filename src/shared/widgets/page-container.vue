@@ -8,8 +8,8 @@
  *
  * Responsabilidades:
  * - área que **rola** (`overflow-y-auto`) com a scrollbar da identidade;
- * - **padding** padronizado (`space-6` no mobile, `space-8` no desktop) — nunca
- *   redefinido por tela;
+ * - **padding** padronizado (`space-5` no mobile, `space-6` no desktop) — gutter
+ *   enxuto em relação à sidebar; nunca redefinido por tela;
  * - conteúdo **centralizado** com largura máxima única.
  *
  * `width` cobre o caso raro de uma tela precisar de leitura mais estreita
@@ -31,7 +31,7 @@ const MAX_WIDTH: Record<'default' | 'narrow' | 'full', string> = {
 </script>
 
 <template>
-  <div class="scrollbar-noturno flex-1 overflow-y-auto p-6 lg:p-8">
+  <div class="scrollbar-noturno flex-1 overflow-y-auto p-5 lg:p-6">
     <div class="mx-auto flex w-full flex-col gap-6" :class="MAX_WIDTH[width]">
       <slot />
     </div>

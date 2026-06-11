@@ -29,7 +29,8 @@ function tone(severity?: string): Tone {
 </script>
 
 <template>
-  <Toast position="top-right">
+  <!-- `pt.message`: margem entre toasts empilhados (não ficam colados). -->
+  <Toast position="top-right" :pt="{ message: { class: 'mb-3 last:mb-0' } }">
     <template #container="{ message, closeCallback }">
       <div
         class="ds-rise-in flex w-[22rem] max-w-[calc(100vw-2rem)] items-start gap-3 overflow-hidden rounded-card border border-line border-l-4 bg-surface-3 p-4 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.7)]"

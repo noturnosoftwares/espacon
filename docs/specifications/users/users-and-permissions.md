@@ -52,7 +52,11 @@ fonte de autorização.
 - **Operador de caixa:** `isOperator`; se operador → `type` = `unlimited | limited`;
   se `limited` → exige `operatorCode`. **Não é portão do checker** — é dado
   consumido pelos módulos financeiros (`limited` trava no código; `unlimited`
-  escolhe/filtra qualquer operador).
+  escolhe/filtra qualquer operador). O `operatorCode` referencia um operador
+  cadastrado, então a UI usa **campo de busca/`LookupField`** (DS §9.2), **nunca**
+  digitação livre. A tela de cadastro/seleção de operadores de caixa **ainda será
+  implementada** (template ADR-003); o campo já nasce no formato certo e, até lá,
+  acionar a busca informa que está por vir.
 - **`remote`:** habilita features que atravessam empresas (cross-company);
   avaliado só quando a operação for remota.
 
@@ -175,7 +179,8 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
   clique/Enter na linha abrem detalhes; em **seleção** (`?mode=select`), confirmam
   e devolvem o perfil. A coluna **Ver detalhes** existe **apenas no modo seleção**
   (lá o clique na linha confirma, então é o único caminho para abrir o registro);
-  em gestão ela é omitida (seria redundante com o clique na linha). **Novo perfil**
+  em gestão ela é omitida (seria redundante com o clique na linha). É um botão **só
+  de ícone** (olho, em accent, com *hint*) — o texto ocupava espaço demais. **Novo perfil**
   aparece nos dois modos. **Reentrada de modo:** ao abrir **Ver detalhes** ou
   **Novo perfil** dentro do modo seleção, a query `mode/req` é levada adiante e
   devolvida no retorno — a listagem **reentra em modo seleção** e o registro
@@ -183,7 +188,11 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
   `returnTo` da requisição (não `router.back()`), robusto a esses detours.
 
 A **matriz** mostra recursos (catálogo) × 9 ações, com toggles individual/por
-sessão/por coluna e **9 contadores ao vivo**.
+sessão/por coluna e **9 contadores ao vivo**. Tem um **filtro local de recurso**
+(busca por descrição/código — DS §9.1: filtra o cache, sem requisição) para achar
+um recurso específico; os toggles de coluna/sessão passam a agir sobre os recursos
+**visíveis** (filtrados) e os contadores seguem refletindo o **total**. O widget é
+compartilhado por **Usuário** e **Perfil**, então o filtro vale nas duas telas.
 
 ---
 

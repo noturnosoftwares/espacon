@@ -12,8 +12,14 @@
  * Estado imutável para fora: emite `update:modelValue` com o `Permission[]`
  * derivado (recursos com ao menos uma ação ligada). O catálogo é a fonte das
  * linhas; o `modelValue` define quais ações estão ligadas.
+ *
+ * **Filtro de recurso** (DS §9.1 — filtro local): o campo de busca refina as
+ * linhas visíveis pelo cache (descrição/código/sessão), sem requisição, para
+ * achar um recurso rápido. Toggles por coluna/sessão e a renderização operam
+ * sobre o **resultado filtrado**; os contadores seguem refletindo o total.
  */
 import { computed, ref, watch } from 'vue'
+import { SearchField } from '@/shared/widgets'
 import {
   type Permission,
   type PermissionActions,
@@ -48,6 +54,33 @@ function rebuildState(): void {
 }
 
 watch(() => [props.sections, props.modelValue], rebuildState, { immediate: true, deep: false })
+
+// ── Filtro local de recurso (sem requisição — DS §9.1) ──────────────────────
+const search = ref('')
+
+/** Normaliza para comparação tolerante a acento/caixa. */
+function normalize(value: string): string {
+  return value
+    .toLocaleLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+}
+
+/** Sessões com entradas que casam o termo (descrição/código/sessão). */
+const filteredSections = computed<CatalogSection[]>(() => {
+  const term = normalize(search.value.trim())
+  if (!term) return props.sections
+  return props.sections
+    .map((section) => ({
+      ...section,
+      entries: section.entries.filter((entry) =>
+        normalize(`${entry.label} ${entry.code} ${entry.section}`).includes(term),
+      ),
+    }))
+    .filter((section) => section.entries.length > 0)
+})
+
+const hasResults = computed(() => filteredSections.value.length > 0)
 
 /** Uma célula só é editável se o recurso suportar a ação (default: todas). */
 function isSupported(entry: PermissionCatalogEntry, action: PermissionAction): boolean {
@@ -97,10 +130,10 @@ function toggleSection(section: CatalogSection, action: PermissionAction): void 
   emitChange()
 }
 
-/** Liga/desliga uma ação em todos os recursos de todas as sessões (coluna). */
+/** Liga/desliga uma ação em todos os recursos **visíveis** (coluna). */
 function toggleColumn(action: PermissionAction): void {
   const target = !columnAllOn(action)
-  for (const section of props.sections) {
+  for (const section of filteredSections.value) {
     for (const entry of section.entries) {
       if (!isSupported(entry, action)) continue
       const current = state.value[entry.key] ?? emptyActions()
@@ -117,7 +150,9 @@ function sectionAllOn(section: CatalogSection, action: PermissionAction): boolea
 }
 
 function columnAllOn(action: PermissionAction): boolean {
-  const supported = props.sections.flatMap((s) => s.entries).filter((e) => isSupported(e, action))
+  const supported = filteredSections.value
+    .flatMap((s) => s.entries)
+    .filter((e) => isSupported(e, action))
   return supported.length > 0 && supported.every((entry) => isOn(entry, action))
 }
 
@@ -139,8 +174,14 @@ const actions = ALL_ACTIONS
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-lg border border-line">
-    <table class="w-full border-collapse text-sm">
+  <div class="flex flex-col gap-3">
+    <!-- Filtro local: acha um recurso específico sem requisição (DS §9.1). -->
+    <div class="w-full max-w-sm">
+      <SearchField v-model="search" placeholder="Filtrar recurso (descrição ou código)…" />
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-line">
+      <table class="w-full border-collapse text-sm">
       <!-- Cabeçalho: rótulo + 9 ações (clique no rótulo da ação alterna a coluna) -->
       <thead>
         <tr class="bg-surface-1 text-content-muted">
@@ -162,7 +203,13 @@ const actions = ALL_ACTIONS
       </thead>
 
       <tbody>
-        <template v-for="section in sections" :key="section.section">
+        <!-- Nenhum recurso casa o filtro local. -->
+        <tr v-if="!hasResults">
+          <td :colspan="actions.length + 1" class="px-3 py-6 text-center text-sm text-content-muted">
+            Nenhum recurso para “{{ search.trim() }}”.
+          </td>
+        </tr>
+        <template v-for="section in filteredSections" :key="section.section">
           <!-- Cabeçalho da sessão: toggles por ação para o grupo -->
           <tr class="bg-surface-2/60">
             <th
@@ -235,6 +282,7 @@ const actions = ALL_ACTIONS
           </td>
         </tr>
       </tfoot>
-    </table>
+      </table>
+    </div>
   </div>
 </template>

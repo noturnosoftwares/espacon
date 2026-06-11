@@ -125,7 +125,7 @@ async function onSubmit(): Promise<void> {
             class="ds-focus-ring text-sm text-content-muted transition-colors hover:text-accent"
             @click="emit('recover')"
           >
-            Recuperar senha →
+            Esqueci minha senha →
           </button>
         </div>
       </form>
