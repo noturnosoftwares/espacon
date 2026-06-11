@@ -1,0 +1,23 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(git add:*)",
+            "Bash(git commit:*)",
+            "Bash(git push:*)",
+            "Bash(git status:*)",
+            "Bash(git diff:*)"
+        ]
+    },
+    "hooks": {
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "cd \"$CLAUDE_PROJECT_DIR\" && git add -A && (git diff --cached --quiet || git commit -m \"chore: auto-commit $(date '+%Y-%m-%d %H:%M')\") && git push"
+                    }
+                ]
+            }
+        ]
+    }
+}
