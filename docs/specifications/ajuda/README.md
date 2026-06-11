@@ -62,3 +62,35 @@ Conhecimento).
   `data/mocks/mock-nav.ts`; dashboard em `data/mocks/mock-home-dashboard.ts`;
   sessão via `useSessionStore` (auth); mapa em `@/shared/widgets/brazil-points-map`.
 - **Especificação**: `docs/specifications/home/README.md`.
+
+---
+
+## Usuários, Perfis e Permissões
+
+- **O que faz**: cadastra e mantém **usuários**, **perfis** (modelos de cadastro)
+  e **permissões** por recurso × ação, com dados de acesso (operador de caixa,
+  remoto, restrição de horário/IP).
+- **Onde acessar**: `/usuarios` e `/perfis` (exige sessão).
+- **Como usar**:
+  - **Pesquisa** — a tela **abre vazia**; digite e pressione **Enter** (ou clique
+    em **Buscar**). A lista usa **scroll infinito**: role para baixo e novos
+    registros carregam sozinhos (lotes de 30), com indicador no rodapé enquanto
+    houver dados — **não há botões de página**.
+  - **Sem resultados** — a tela mostra o termo buscado **em vermelho** e o botão
+    **"Limpar pesquisa"**, que limpa o termo e os filtros e recarrega a lista
+    completa.
+  - **Cadastro/edição** — clique numa linha (ou **Novo usuário**). Os campos ficam
+    agrupados por contexto; **Salvar/Cancelar** aparecem só quando há alteração.
+  - **Cancelar** — ao editar, **desfaz as alterações e mantém você no registro**
+    (restaura o original). Ao incluir um registro novo, **volta para a lista**.
+  - **Erros ao salvar** — falha de validação ou de gravação mostra o aviso no topo
+    + marca os campos **e** dispara um **toast** com a mesma mensagem.
+- **Regras**: o **perfil não concede acesso** (apenas copia/redefine ações); a
+  autorização lê sempre `user.permissions`. Multiempresa via `role`/`accessScope`
+  (ADR-006). Decisões de comportamento: **scroll infinito** (template ADR-002) e
+  **cancelar restaura/permanece** (template ADR-001).
+- **Permissões**: acesso por (recurso, ação); ver a matriz na própria tela.
+- **Impactos**: módulo `src/modules/users`; `shared/access`; grid/estado em
+  `shared/widgets` (`PageContainer`, `BaseDataTable`, `EmptyState`) e
+  `shared/stores` (`BaseCrudStore`).
+- **Especificação**: `docs/specifications/users/users-and-permissions.md`.

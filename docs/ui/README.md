@@ -1,5 +1,12 @@
 # UI e Identidade Visual
 
+> **Atualização (2026-06-10).** A **lei visual** e os **padrões operacionais de
+> UI** vivem no template corporativo: `../template/docs/design-system/README.md`
+> e `../template/docs/ui/README.md`. Este documento permanece como referência
+> histórica do produto e foi **refinado** (não revogado) para alinhar com o
+> **scroll infinito** das listagens (ADR-002) — ver as seções *Cadastros* e
+> *Grids* abaixo.
+
 ## Objetivo
 
 Definir o padrão visual do HelpDesk.
@@ -54,7 +61,8 @@ Telas de cadastro devem usar:
 * botões com ícones;
 * grids com filtro;
 * grids com ordenação;
-* paginação em carregamentos;
+* carregamento por **scroll infinito** (lote de 30 — ADR-002), com indicador de
+  rodapé enquanto houver dados (substitui a paginação por número de página);
 * estados de loading, erro e vazio.
 
 ## Grids
@@ -63,9 +71,11 @@ Todo grid relevante deve prever:
 
 * filtro;
 * ordenação;
-* paginação;
+* **scroll infinito** (carga em lotes de 30 ao aproximar do fim — ADR-002), em
+  vez de paginação por número de página;
 * loading;
-* estado vazio;
+* **estado vazio** — na pesquisa sem resultados, destacar o termo buscado em
+  vermelho (`#FF2626`) e oferecer **"Limpar pesquisa"** (ver Design System §9.1);
 * ações por linha quando necessário.
 
 ## Responsividade
