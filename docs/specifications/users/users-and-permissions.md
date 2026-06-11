@@ -146,8 +146,12 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
 ## Telas (rotas)
 
 - `/usuarios` — lista (grid com busca/ordenação/**scroll infinito** (lote de 30 —
-  template ADR-002)/loading/erro). Sem resultados: termo destacado em vermelho
-  (`#FF2626`) + botão **"Limpar pesquisa"** (limpa termo + filtros e recarrega).
+  template ADR-002)/loading/erro). **Filtro de Situação** (Todas/Ativos/Inativos →
+  `UserFilters.active`): filtro discreto que **aplica na hora**; o termo segue por
+  Enter (§9.1). Sem resultados: termo destacado em vermelho (`#FF2626`) + botão
+  **"Limpar filtros"** (limpa termo **e** situação e recarrega). O botão "Limpar"
+  na barra aparece sempre que houver qualquer filtro ativo; o contexto (termo +
+  situação) é restaurado ao voltar de um registro.
 - `/usuarios/novo` e `/usuarios/:id` — formulário (dados + funcionário, Caixa,
   Remoto, Horário, IP, **busca de Perfil**, **matriz de permissões**). O Perfil é
   **dado de referência do backend**, então usa **campo de busca/`LookupField`**

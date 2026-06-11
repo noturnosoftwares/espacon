@@ -12,6 +12,7 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Select from 'primevue/select'
 import {
   BaseButton,
   BaseCard,
@@ -30,12 +31,35 @@ const store = useUsersStore()
 
 const search = ref('')
 
+// Filtro de **situação** (ativo/inativo). Modelado como chave de UI e convertido
+// para o contrato `active?: boolean | null` ao aplicar (ausente/null = todas).
+type Situation = 'all' | 'active' | 'inactive'
+const SITUATION_OPTIONS: { label: string; value: Situation }[] = [
+  { label: 'Todas', value: 'all' },
+  { label: 'Ativos', value: 'active' },
+  { label: 'Inativos', value: 'inactive' },
+]
+const situation = ref<Situation>('all')
+
+function situationToActive(value: Situation): boolean | null {
+  return value === 'active' ? true : value === 'inactive' ? false : null
+}
+function activeToSituation(active: boolean | null | undefined): Situation {
+  return active === true ? 'active' : active === false ? 'inactive' : 'all'
+}
+
+/** Há algum filtro aplicado (termo ou situação)? Habilita o "Limpar". */
+const hasActiveFilters = computed(
+  () => !!store.currentQuery || store.filters?.active != null,
+)
+
 // Preserva o contexto ao voltar de um registro: se já houve busca, restaura o
-// termo e **atualiza** a lista (refletindo inclusões/edições/exclusões) — nunca
-// zera a tela (Design System §9.1).
+// termo e a situação e **atualiza** a lista (refletindo inclusões/edições/
+// exclusões) — nunca zera a tela (Design System §9.1).
 onMounted(() => {
   if (store.searched) {
     search.value = store.currentQuery
+    situation.value = activeToSituation(store.filters?.active)
     void store.refresh()
   }
 })
@@ -59,15 +83,22 @@ const columns = [
 const activeCount = computed(() => store.items.filter((u) => u.active).length)
 const inactiveCount = computed(() => store.items.length - activeCount.value)
 
-/** Busca por Enter ou botão (§9.1) — nunca a cada tecla. */
+/**
+ * Aplica os filtros atuais (termo + situação). O termo busca por Enter/botão
+ * (§9.1 — nunca a cada tecla); a situação, sendo discreta, aplica na hora.
+ */
 function runSearch(): void {
-  store.applyFilters({ query: search.value.trim() })
+  store.applyFilters({
+    query: search.value.trim(),
+    active: situationToActive(situation.value),
+  })
 }
 
-/** Limpa termo + filtros e recarrega a lista completa (§9.1, item 5). */
+/** Limpa termo **e** situação e recarrega a lista completa (§9.1, item 5). */
 function clearSearch(): void {
   search.value = ''
-  store.applyFilters({ query: '' })
+  situation.value = 'all'
+  store.applyFilters({ query: '', active: null })
 }
 
 function goNew(): void {
@@ -91,15 +122,35 @@ function openUser(user: User): void {
       <BaseButton icon="pi-plus" label="Novo usuário" @click="goNew" />
     </header>
 
-    <!-- Busca -->
-    <div class="flex w-full max-w-xl items-center gap-2">
-      <SearchField
-        v-model="search"
-        placeholder="Buscar por nome, login ou e-mail"
-        @search="runSearch"
-        @clear="runSearch"
+    <!-- Busca + filtros -->
+    <div class="flex w-full flex-wrap items-center gap-2">
+      <div class="flex min-w-0 flex-1 items-center gap-2 sm:max-w-xl">
+        <SearchField
+          v-model="search"
+          placeholder="Buscar por nome, login ou e-mail"
+          @search="runSearch"
+          @clear="runSearch"
+        />
+        <BaseButton variant="neutral" icon="pi-search" label="Buscar" @click="runSearch" />
+      </div>
+      <!-- Situação: filtro discreto, aplica na hora. -->
+      <Select
+        v-model="situation"
+        :options="SITUATION_OPTIONS"
+        optionLabel="label"
+        optionValue="value"
+        aria-label="Filtrar por situação"
+        class="w-40"
+        @change="runSearch"
       />
-      <BaseButton variant="neutral" icon="pi-search" label="Buscar" @click="runSearch" />
+      <!-- Limpar termo + filtros (aparece com qualquer filtro ativo). -->
+      <BaseButton
+        v-if="hasActiveFilters"
+        variant="neutral"
+        icon="pi-filter-slash"
+        label="Limpar"
+        @click="clearSearch"
+      />
     </div>
 
     <!-- Erro -->
@@ -168,10 +219,10 @@ function openUser(user: User): void {
             </template>
             <template #hint>Revise o termo ou ajuste os filtros e tente novamente.</template>
             <BaseButton
-              v-if="store.currentQuery"
+              v-if="hasActiveFilters"
               variant="neutral"
               icon="pi-filter-slash"
-              label="Limpar pesquisa"
+              label="Limpar filtros"
               @click="clearSearch"
             />
           </EmptyState>
