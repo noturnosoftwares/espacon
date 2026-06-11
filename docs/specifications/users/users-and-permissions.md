@@ -173,8 +173,14 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
   confirmação/restauração** (template ADR-001), excluir no cabeçalho e toast.
   A listagem `/perfis` opera em **dois modos** (template ADR-003): em **gestão**,
   clique/Enter na linha abrem detalhes; em **seleção** (`?mode=select`), confirmam
-  e devolvem o perfil. Em ambos os modos há o botão **Ver detalhes** por linha
-  (em modo seleção, único caminho para abrir o registro) além do **Novo perfil**.
+  e devolvem o perfil. A coluna **Ver detalhes** existe **apenas no modo seleção**
+  (lá o clique na linha confirma, então é o único caminho para abrir o registro);
+  em gestão ela é omitida (seria redundante com o clique na linha). **Novo perfil**
+  aparece nos dois modos. **Reentrada de modo:** ao abrir **Ver detalhes** ou
+  **Novo perfil** dentro do modo seleção, a query `mode/req` é levada adiante e
+  devolvida no retorno — a listagem **reentra em modo seleção** e o registro
+  editado/incluído fica selecionável. O retorno à tela solicitante usa o
+  `returnTo` da requisição (não `router.back()`), robusto a esses detours.
 
 A **matriz** mostra recursos (catálogo) × 9 ações, com toggles individual/por
 sessão/por coluna e **9 contadores ao vivo**.

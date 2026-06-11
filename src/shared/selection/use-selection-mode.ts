@@ -13,8 +13,11 @@ import { useSelectionStore } from './selection-store'
  * `confirmSelection(record)` nos gestos de confirmar (clique/Enter) e
  * `cancelSelection()` para voltar sem escolher.
  *
- * `T` = tipo do registro devolvido. A navegação de retorno é `router.back()`
- * (preserva o histórico nativo); a solicitante recupera o resultado pela
+ * `T` = tipo do registro devolvido. A navegação de retorno é um
+ * `router.push(returnTo)` **explícito** (o caminho da solicitante guardado na
+ * requisição), e **não** `router.back()`: a listagem pode ter detours no
+ * histórico (abrir "Ver detalhes", "Novo registro") e o `back()` cairia no
+ * detalhe, não na solicitante. A solicitante recupera o resultado pela
  * `SelectionStore` ao ser reativada.
  */
 export function useSelectionMode<T>() {
@@ -27,19 +30,30 @@ export function useSelectionMode<T>() {
     typeof route.query.req === 'string' ? route.query.req : null,
   )
 
+  /** Volta à solicitante pelo `returnTo` da requisição (robusto a detours). */
+  function returnToRequester(id: string): void {
+    const req = selection.get(id)
+    if (req) void router.push(req.returnTo)
+    else void router.back()
+  }
+
   /** Confirma e devolve o registro à tela solicitante (não abre detalhes). */
   function confirmSelection(record: T): void {
     const id = requestId.value
     if (!id) return
     selection.resolve(id, record)
-    router.back()
+    returnToRequester(id)
   }
 
   /** Volta sem escolher (registra o cancelamento e retorna à solicitante). */
   function cancelSelection(): void {
     const id = requestId.value
-    if (id) selection.cancel(id)
-    router.back()
+    if (!id) {
+      void router.back()
+      return
+    }
+    selection.cancel(id)
+    returnToRequester(id)
   }
 
   return { isSelectMode, requestId, confirmSelection, cancelSelection }

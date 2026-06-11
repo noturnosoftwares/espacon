@@ -89,8 +89,11 @@ Conhecimento).
   - **Perfil (modelo)** — é um **campo de busca**: clique para abrir a **própria
     listagem de perfis em modo seleção** (não há tela de busca separada). Pesquise,
     e **clique no perfil** (ou pressione **Enter**) para devolvê-lo ao cadastro;
-    use **Ver detalhes** se quiser abrir o perfil antes de escolher, e **Cancelar
-    seleção** para voltar sem escolher. Ao confirmar, o sistema pede confirmação e
+    use **Ver detalhes** (botão que aparece **só no modo seleção**) se quiser abrir
+    o perfil antes de escolher, e **Cancelar seleção** para voltar sem escolher. Se
+    você abrir um perfil em detalhes (ou criar um **Novo perfil**) durante a
+    seleção, ao voltar **continua no modo seleção** e o registro editado/incluído
+    fica disponível para escolher. Ao confirmar, o sistema pede confirmação e
     as ações do perfil **preenchem toda a matriz de permissões** do usuário
     (sobrescrevem o que estava marcado). O perfil não concede acesso por si —
     apenas copia as ações. O cadastro em andamento é **preservado** no ida-e-volta.

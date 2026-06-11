@@ -14,6 +14,7 @@ import {
   onBeforeRouteLeave,
   useRoute,
   useRouter,
+  type LocationQueryRaw,
   type RouteLocationNormalized,
 } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
@@ -36,6 +37,17 @@ const store = useUserProfilesStore()
 const catalog = usePermissionCatalogStore()
 
 const isEdit = computed(() => route.name === 'user-profile-edit')
+
+// Detour de seleção (template ADR-003): quando a listagem nos abre em modo
+// seleção, ela passa `mode/req` adiante. Devolvemos essa query ao voltar para a
+// lista, para que a listagem **reentre em modo seleção** (e o registro recém
+// editado/incluído continue selecionável). Em fluxo normal, é `undefined`.
+const listQuery = computed<LocationQueryRaw | undefined>(() =>
+  route.query.mode === 'select' && typeof route.query.req === 'string'
+    ? { mode: 'select', req: route.query.req }
+    : undefined,
+)
+
 const submitted = ref(false)
 const askingDelete = ref(false)
 const askingCancel = ref(false)
@@ -90,7 +102,7 @@ async function onSave(): Promise<void> {
       detail: 'As alterações foram gravadas.',
       life: 4000,
     })
-    router.push({ name: 'user-profiles' })
+    router.push({ name: 'user-profiles', query: listQuery.value })
   } else {
     notifySaveError(store.errorMessage ?? 'Não foi possível salvar o perfil.')
   }
@@ -114,13 +126,13 @@ function performCancel(): void {
   submitted.value = false
   if (outcome === 'leave') {
     confirmedLeave.value = true
-    router.push({ name: 'user-profiles' })
+    router.push({ name: 'user-profiles', query: listQuery.value })
   }
 }
 
 /** Voltar pelo cabeçalho/breadcrumb: navega à lista (a guarda cuida do não salvo). */
 function goBack(): void {
-  router.push({ name: 'user-profiles' })
+  router.push({ name: 'user-profiles', query: listQuery.value })
 }
 
 async function onConfirmDelete(): Promise<void> {
@@ -135,7 +147,7 @@ async function onConfirmDelete(): Promise<void> {
       detail: 'O registro foi removido.',
       life: 4000,
     })
-    router.push({ name: 'user-profiles' })
+    router.push({ name: 'user-profiles', query: listQuery.value })
   }
 }
 

@@ -14,8 +14,8 @@
  * **Enter**, grid de leitura, **scroll infinito** (ADR-002) e estado vazio com
  * termo destacado. Sem regra de negócio na tela.
  */
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter, type LocationQueryRaw } from 'vue-router'
 import { useSelectionMode } from '@/shared/selection'
 import {
   BaseButton,
@@ -30,7 +30,17 @@ import type { UserProfile } from '../../domain/models'
 
 const router = useRouter()
 const store = useUserProfilesStore()
-const { isSelectMode, confirmSelection, cancelSelection } = useSelectionMode<UserProfile>()
+const { isSelectMode, requestId, confirmSelection, cancelSelection } =
+  useSelectionMode<UserProfile>()
+
+// Em modo seleção, detours para detalhe/novo carregam `mode/req` para que a
+// listagem **reentre em modo seleção** ao voltar (e o registro editado/incluído
+// fique selecionável). Em modo gestão, navega sem query.
+const selectQuery = computed<LocationQueryRaw | undefined>(() =>
+  isSelectMode.value && requestId.value
+    ? { mode: 'select', req: requestId.value }
+    : undefined,
+)
 
 const search = ref('')
 
@@ -43,7 +53,11 @@ onMounted(() => {
   }
 })
 
-const columns = [
+// A coluna "Ações / Ver detalhes" só existe em **modo seleção** (template
+// ADR-003): nesse modo o clique na linha confirma a seleção, então "Ver
+// detalhes" é o único caminho para abrir o registro. Em modo gestão o clique
+// na linha já abre os detalhes — a ação seria redundante.
+const columns = computed(() => [
   { field: 'description', label: 'Descrição', sortable: true },
   {
     field: 'resources',
@@ -52,8 +66,10 @@ const columns = [
     width: '10rem',
     sortAccessor: (row: UserProfile) => row.permissions.length,
   },
-  { field: 'actions', label: 'Ações', sortable: false, width: '11rem', align: 'right' as const },
-]
+  ...(isSelectMode.value
+    ? [{ field: 'actions', label: 'Ações', sortable: false, width: '11rem', align: 'right' as const }]
+    : []),
+])
 
 /** Busca por Enter ou botão (§9.1) — nunca a cada tecla. */
 function runSearch(): void {
@@ -67,12 +83,19 @@ function clearSearch(): void {
 }
 
 function goNew(): void {
-  void router.push({ name: 'user-profile-new' })
+  void router.push({ name: 'user-profile-new', query: selectQuery.value })
 }
 
-/** Abre o registro (detalhes/edição) — funciona nos **dois** modos. */
+/**
+ * Abre o registro (detalhes/edição). Em modo seleção, leva `mode/req` adiante
+ * para que o retorno reentre na seleção (a tela de form devolve a query).
+ */
 function openDetails(profile: UserProfile): void {
-  void router.push({ name: 'user-profile-edit', params: { id: profile.id } })
+  void router.push({
+    name: 'user-profile-edit',
+    params: { id: profile.id },
+    query: selectQuery.value,
+  })
 }
 
 /**
@@ -169,9 +192,9 @@ function onRowActivate(profile: UserProfile): void {
         <template #cell-resources="{ row }">
           <span class="text-content-soft">{{ (row as UserProfile).permissions.length }} recurso(s)</span>
         </template>
-        <!-- Ação explícita: abre o registro nos dois modos (em seleção é o único
-             caminho para abrir detalhes). `@click.stop` evita disparar o gesto da
-             linha (que, em modo seleção, confirmaria a seleção). -->
+        <!-- Só existe em modo seleção (coluna condicional): é o único caminho
+             para abrir o registro, já que o clique na linha confirma a seleção.
+             `@click.stop` evita disparar o gesto da linha. -->
         <template #cell-actions="{ row }">
           <span class="inline-flex justify-end" @click.stop @keydown.enter.stop>
             <BaseButton
