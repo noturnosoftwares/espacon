@@ -151,7 +151,11 @@ Providers `Mock*` agora; `Rest*` sob medida depois.
   com alterações **confirma antes**; ao confirmar, em edição restaura o registro e
   permanece no detalhe, em registro novo volta à lista (template ADR-001). Falha
   de save (validação/API) dispara **toast** além do informativo no topo.
-- `/perfis`, `/perfis/novo`, `/perfis/:id` — perfis (descrição + **a mesma matriz**).
+- `/perfis`, `/perfis/novo`, `/perfis/:id` — perfis (descrição + **a mesma
+  matriz**). Mesmos padrões da tela de usuários: `PageContainer`, grid de leitura
+  com **scroll infinito** (template ADR-002), estado vazio com termo destacado +
+  "Limpar pesquisa", e formulário com `StickyActionBar`, **cancelar com
+  confirmação/restauração** (template ADR-001), excluir no cabeçalho e toast.
 
 A **matriz** mostra recursos (catálogo) × 9 ações, com toggles individual/por
 sessão/por coluna e **9 contadores ao vivo**.

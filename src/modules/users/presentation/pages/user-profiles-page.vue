@@ -1,20 +1,23 @@
 <script setup lang="ts">
 /**
- * UserProfilesPage — listagem de perfis (rota `/perfis`).
+ * UserProfilesPage — pesquisa de perfis (rota `/perfis`), dentro do `AppShell`.
  *
- * Mesmos padrões de grid da `UsersPage`. O perfil é apenas um modelo de
- * cadastro (não concede acesso). Sem regra de negócio na tela.
+ * Mesmos padrões da `UsersPage` (Design System §9.1): abre vazia, busca por
+ * **Enter**, grid de **leitura** sem ações inline (clique na linha → edição),
+ * **scroll infinito** (ADR-002) e estado vazio com termo destacado + **Limpar
+ * pesquisa**. Espaçamento via `PageContainer` (§4). O perfil é apenas um modelo
+ * de cadastro (não concede acesso). Sem regra de negócio na tela.
  */
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
-import Dialog from 'primevue/dialog'
-import { PageContainer } from '@/shared/widgets'
+import {
+  BaseButton,
+  BaseCard,
+  BaseDataTable,
+  EmptyState,
+  PageContainer,
+  SearchField,
+} from '@/shared/widgets'
 import { useUserProfilesStore } from '../stores'
 import type { UserProfile } from '../../domain/models'
 
@@ -22,123 +25,131 @@ const router = useRouter()
 const store = useUserProfilesStore()
 
 const search = ref('')
-const deleteTarget = ref<UserProfile | null>(null)
 
+// Preserva o contexto ao voltar de um registro (§9.1): restaura o termo e
+// atualiza a lista (refletindo inclusões/edições/exclusões) — nunca zera a tela.
 onMounted(() => {
-  void store.load()
+  if (store.searched) {
+    search.value = store.currentQuery
+    void store.refresh()
+  }
 })
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null
-function onSearch(): void {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => store.applyFilters({ query: search.value }), 300)
+const columns = [
+  { field: 'description', label: 'Descrição', sortable: true },
+  {
+    field: 'resources',
+    label: 'Recursos',
+    sortable: true,
+    width: '12rem',
+    sortAccessor: (row: UserProfile) => row.permissions.length,
+  },
+]
+
+/** Busca por Enter ou botão (§9.1) — nunca a cada tecla. */
+function runSearch(): void {
+  store.applyFilters({ query: search.value.trim() })
+}
+
+/** Limpa termo + filtros e recarrega a lista completa (§9.1). */
+function clearSearch(): void {
+  search.value = ''
+  store.applyFilters({ query: '' })
 }
 
 function goNew(): void {
   void router.push({ name: 'user-profile-new' })
 }
-function goEdit(profile: UserProfile): void {
+function openProfile(profile: UserProfile): void {
   void router.push({ name: 'user-profile-edit', params: { id: profile.id } })
-}
-
-function askDelete(profile: UserProfile): void {
-  deleteTarget.value = profile
-}
-async function confirmDelete(): Promise<void> {
-  if (deleteTarget.value) await store.remove(deleteTarget.value.id)
-  deleteTarget.value = null
-}
-
-function actionCount(profile: UserProfile): number {
-  return profile.permissions.length
 }
 </script>
 
 <template>
   <PageContainer>
-    <header class="flex flex-wrap items-center justify-between gap-3">
+    <!-- Cabeçalho -->
+    <header class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-xl font-bold text-noturno-white">Perfis de Usuário</h1>
-        <p class="text-sm text-noturno-grey-light">
+        <h1 class="text-2xl font-bold text-content">Perfis de Usuário</h1>
+        <p class="mt-1 text-sm text-content-muted">
           Modelos de cadastro que aceleram a atribuição de permissões.
         </p>
       </div>
-      <Button label="Novo perfil" icon="pi pi-plus" @click="goNew" />
+      <BaseButton icon="pi-plus" label="Novo perfil" @click="goNew" />
     </header>
 
-    <div class="flex items-center gap-3">
-      <IconField class="w-full max-w-sm">
-        <InputIcon class="pi pi-search" />
-        <InputText
-          v-model="search"
-          placeholder="Buscar por descrição"
-          class="w-full"
-          @input="onSearch"
-        />
-      </IconField>
+    <!-- Busca -->
+    <div class="flex w-full max-w-xl items-center gap-2">
+      <SearchField
+        v-model="search"
+        placeholder="Buscar por descrição"
+        @search="runSearch"
+        @clear="runSearch"
+      />
+      <BaseButton variant="neutral" icon="pi-search" label="Buscar" @click="runSearch" />
     </div>
 
-    <p v-if="store.hasError" class="rounded-md bg-noturno-red/10 px-4 py-2 text-sm text-noturno-red">
+    <!-- Erro -->
+    <p
+      v-if="store.hasError"
+      class="flex items-center gap-2 rounded-field border border-danger/40 bg-danger-soft px-4 py-2 text-sm text-danger"
+    >
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
       {{ store.errorMessage }}
     </p>
 
-    <DataTable
-      :value="store.items"
-      :loading="store.loading"
-      paginator
-      :rows="store.pageSize"
-      removableSort
-      dataKey="id"
-      class="rounded-lg border border-noturno-grey-light-clean-3"
-    >
-      <template #empty>
-        <div class="py-8 text-center text-noturno-grey-light">Nenhum perfil encontrado.</div>
-      </template>
+    <!-- Estado inicial: convida à busca (§9.1). -->
+    <BaseCard v-if="!store.searched" flush>
+      <EmptyState
+        icon="pi-id-card"
+        title="Pronto para pesquisar."
+        hint="Digite uma descrição e pressione Enter para listar os perfis."
+      />
+    </BaseCard>
 
-      <Column field="description" header="Descrição" sortable />
-      <Column header="Recursos">
-        <template #body="{ data }">
-          <span class="text-noturno-grey-light-clean">{{ actionCount(data) }} recurso(s)</span>
+    <template v-else>
+      <!-- Card de situação do resultado. -->
+      <div v-if="store.items.length" class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <BaseCard>
+          <p class="text-xs font-medium uppercase tracking-wide text-content-muted">Encontrados</p>
+          <p class="mt-1 text-2xl font-bold text-content">{{ store.totalItems }}</p>
+        </BaseCard>
+      </div>
+
+      <!-- Grid de leitura: linha clicável, sem ações inline, scroll infinito. -->
+      <BaseDataTable
+        :rows="store.items"
+        :columns="columns"
+        :loading="store.loading"
+        :has-more="store.hasMore"
+        :loading-more="store.loadingMore"
+        row-key="id"
+        @row-click="openProfile"
+        @load-more="store.loadNext"
+      >
+        <template #cell-resources="{ row }">
+          <span class="text-content-soft">{{ (row as UserProfile).permissions.length }} recurso(s)</span>
         </template>
-      </Column>
-      <Column header="Ações" :style="{ width: '8rem' }">
-        <template #body="{ data }">
-          <div class="flex gap-1">
-            <Button icon="pi pi-pencil" text rounded aria-label="Editar" @click="goEdit(data)" />
-            <Button
-              icon="pi pi-trash"
-              text
-              rounded
-              severity="danger"
-              aria-label="Excluir"
-              @click="askDelete(data)"
+        <template #empty>
+          <EmptyState icon="pi-search-minus" tone="danger">
+            <template #title>
+              <template v-if="store.currentQuery">
+                Nenhum resultado para
+                <span class="font-semibold text-danger">“{{ store.currentQuery }}”</span>
+              </template>
+              <template v-else>Nenhum perfil encontrado.</template>
+            </template>
+            <template #hint>Revise o termo ou ajuste os filtros e tente novamente.</template>
+            <BaseButton
+              v-if="store.currentQuery"
+              variant="neutral"
+              icon="pi-filter-slash"
+              label="Limpar pesquisa"
+              @click="clearSearch"
             />
-          </div>
+          </EmptyState>
         </template>
-      </Column>
-    </DataTable>
-
-    <Dialog
-      :visible="deleteTarget !== null"
-      modal
-      header="Excluir perfil?"
-      :style="{ width: '26rem' }"
-      @update:visible="(v: boolean) => { if (!v) deleteTarget = null }"
-    >
-      <p class="text-sm text-noturno-grey-light-clean">
-        Confirma a exclusão de <strong>{{ deleteTarget?.description }}</strong>? Usuários já
-        cadastrados não são afetados (o perfil é só um modelo).
-      </p>
-      <template #footer>
-        <Button label="Cancelar" text severity="secondary" @click="deleteTarget = null" />
-        <Button
-          label="Excluir"
-          icon="pi pi-trash"
-          severity="danger"
-          :loading="store.isDeleting"
-          @click="confirmDelete"
-        />
-      </template>
-    </Dialog>
+      </BaseDataTable>
+    </template>
   </PageContainer>
 </template>
