@@ -19,3 +19,15 @@ export function isValidPhone(value: string): boolean {
   const length = onlyDigits(value).length
   return length === 10 || length === 11
 }
+
+/**
+ * Valida **celular** brasileiro (ver spec `employee-registration` R8): 11 dígitos,
+ * DDD válido (11–99) e o primeiro dígito após o DDD obrigatoriamente `9`.
+ */
+export function isValidMobilePhone(value: string): boolean {
+  const digits = onlyDigits(value)
+  if (digits.length !== 11) return false
+  const ddd = Number(digits.slice(0, 2))
+  if (ddd < 11 || ddd > 99) return false
+  return digits[2] === '9'
+}

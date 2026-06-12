@@ -105,7 +105,7 @@ export const navGroups: NavGroup[] = [
     icon: 'users',
     status: 'soon',
     items: [
-      soon('funcionario', 'Funcionário', 'user'),
+      { id: 'funcionario', label: 'Funcionário', icon: 'user', route: '/funcionarios', status: 'available' },
       soon('conta-corrente-vales', 'Conta Corrente (Vales)', 'wallet'),
     ],
   },

@@ -175,3 +175,33 @@ Conhecimento).
 - **Impactos**: módulo `src/modules/cash-operators`; vínculo no usuário via
   `CashOperatorAssignment` + canal `shared/selection`.
 - **Especificação**: `docs/specifications/financial/cash-operator.md`.
+
+---
+
+## Funcionários
+
+- **O que faz**: cadastra e mantém o **quadro de pessoal** (dados pessoais,
+  endereço, contato, contrato e dados bancários), com validações rigorosas.
+- **Onde acessar**: menu **Pessoal → Funcionário** (rota `/funcionarios`; exige sessão).
+- **Como usar**:
+  - **Pesquisa** — a tela **abre vazia**; busque por **nome, apelido ou CPF** e
+    pressione **Enter**. **Filtro de Situação** (Todas/Ativos/Afastados/Demitidos)
+    refina a lista carregada na hora. Lista com **scroll infinito**.
+  - **Cadastro/edição** — **Novo funcionário** ou clique numa linha. Campos
+    agrupados por contexto (Identificação, Filiação & Naturalidade, Endereço,
+    Contato, Contrato, Representação, Dados Bancários). O cabeçalho mostra o
+    **código** (badge "Novo"/`Cód.`) e a **situação** (Ativo/Afastado/Demitido).
+  - **Cidade** é um **campo de busca** (digite ≥ 2 letras) que **preenche a UF**
+    automaticamente. **Representante** aparece como busca quando "É representante?"
+    está ligado.
+  - **Salvar** aparece só quando há alteração; pendências de validação mostram
+    resumo no topo + marcação nos campos + toast.
+- **Regras de validação**: CPF válido e **único**; **nome composto** (nome e nome
+  da mãe); **celular** (DDD + 9 dígitos); **CEP coerente com a UF**; **admissão**
+  não-futura; **idade ≥ 18** se o nascimento for informado; **demissão**
+  obrigatória quando a situação é **Demitido**. Comissão é **percentual (%)**.
+- **Permissões**: recurso **Funcionário** (`ADM-003`) no catálogo, com as 9 ações.
+- **Impactos**: módulo `src/modules/employees`; `Address` compartilhado em
+  `shared/models`; widgets `RecordCodeBadge`/`SearchLookupField` em `shared/widgets`;
+  validações em `shared/extensions`.
+- **Especificação**: `docs/specifications/employees/employee-registration.md`.

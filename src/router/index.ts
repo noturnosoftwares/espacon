@@ -104,6 +104,26 @@ const router = createRouter({
           component: () => import('@/modules/cash-operators/presentation/pages/cash-operator-form-page.vue'),
           meta: { requiresAuth: true },
         },
+
+        // Funcionários (Pessoal) — ver spec `employees/employee-registration`.
+        {
+          path: '/funcionarios',
+          name: 'employees',
+          component: () => import('@/modules/employees/presentation/pages/employees-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/funcionarios/novo',
+          name: 'employee-new',
+          component: () => import('@/modules/employees/presentation/pages/employee-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/funcionarios/:id',
+          name: 'employee-edit',
+          component: () => import('@/modules/employees/presentation/pages/employee-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
       ],
     },
   ],
