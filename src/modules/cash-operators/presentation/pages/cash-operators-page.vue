@@ -66,7 +66,12 @@ const STATUS_OPTIONS: { label: string; value: CashOperatorStatusFilter }[] = [
 ]
 const status = ref<CashOperatorStatusFilter>(isSelectMode.value ? acceptedStatus.value : 'all')
 
-const hasActiveFilters = computed(() => !!store.currentSearch || status.value !== 'all')
+// Em modo seleção a Situação fica travada (escondida): o único filtro "limpável"
+// é o termo de busca — não conta o status forçado, senão o "Limpar" apareceria
+// sem nada para limpar.
+const hasActiveFilters = computed(() =>
+  isSelectMode.value ? !!store.currentSearch : !!store.currentSearch || status.value !== 'all',
+)
 
 // Preserva o contexto ao voltar de um registro (§9.1): restaura termo + situação
 // e atualiza a lista (refletindo inclusões/edições/inativações). Nunca zera.
