@@ -44,8 +44,10 @@ const emit = defineEmits<{
 
 const id = useId()
 const suggestions = ref<T[]>([])
-// Espelho local do valor: durante a digitação o AutoComplete troca para string;
-// só promovemos ao pai em `select`/`clear`, mantendo o objeto íntegro no pai.
+// Espelho local do valor: durante a digitação o AutoComplete troca para string e
+// PRECISA refletir isso (componente controlado), senão o texto não aparece. Só
+// promovemos ao pai um **objeto** em `select` (ou `null` em `clear`), mantendo o
+// valor do pai sempre íntegro.
 const selection = ref<T | string | null>(props.modelValue)
 watch(
   () => props.modelValue,
@@ -53,6 +55,11 @@ watch(
     selection.value = value
   },
 )
+
+/** Reflete a digitação/seleção interna (mantém o input responsivo). */
+function onInternalUpdate(value: T | string | null): void {
+  selection.value = value
+}
 
 async function onComplete(event: { query: string }): Promise<void> {
   suggestions.value = await props.searchFn(event.query)
@@ -92,6 +99,7 @@ const inputClass = [
       fluid
       complete-on-focus
       @complete="onComplete"
+      @update:model-value="onInternalUpdate"
       @item-select="onItemSelect"
       @clear="onClear"
       :pt="{

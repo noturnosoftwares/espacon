@@ -24,8 +24,10 @@ import {
   BaseSelect,
   BaseTextField,
   ConfirmDialog,
+  DateField,
   FormSection,
   FormSkeleton,
+  MaskedField,
   PageContainer,
   RecordCodeBadge,
   SearchLookupField,
@@ -120,8 +122,8 @@ const cpf = computed<string>({
   get: () => store.editing?.cpf ?? '',
   set: (value) => store.patch({ cpf: onlyDigits(value) }),
 })
-const birthDate = computed<string>({
-  get: () => store.editing?.birthDate ?? '',
+const birthDate = computed<string | null>({
+  get: () => store.editing?.birthDate ?? null,
   set: (value) => store.patch({ birthDate: value || null }),
 })
 
@@ -172,6 +174,25 @@ async function searchCities(query: string): Promise<City[]> {
   return isOk(result) ? result.data : []
 }
 
+// Buscas de backend ainda não implementadas (spec §17): o campo já nasce no
+// formato de busca; até lá, informa que a integração vem depois.
+function onAddressSearch(): void {
+  toast.add({
+    severity: 'info',
+    summary: 'Em breve',
+    detail: 'A busca de endereço por mapa (NoturnoMAPS) será habilitada em breve.',
+    life: 4000,
+  })
+}
+function onCepSearch(): void {
+  toast.add({
+    severity: 'info',
+    summary: 'Em breve',
+    detail: 'A consulta de endereço por CEP será habilitada quando a API existir.',
+    life: 4000,
+  })
+}
+
 // Contato
 const companyPhone = computed<string>({
   get: () => store.editing?.companyPhone ?? '',
@@ -184,12 +205,12 @@ const personalPhone = computed<string>({
 const email = text('email')
 
 // Contrato
-const admissionDate = computed<string>({
-  get: () => store.editing?.admissionDate ?? '',
+const admissionDate = computed<string | null>({
+  get: () => store.editing?.admissionDate ?? null,
   set: (value) => store.patch({ admissionDate: value || null }),
 })
-const dismissalDate = computed<string>({
-  get: () => store.editing?.dismissalDate ?? '',
+const dismissalDate = computed<string | null>({
+  get: () => store.editing?.dismissalDate ?? null,
   set: (value) => store.patch({ dismissalDate: value || null }),
 })
 const salary = computed<string>({
@@ -441,16 +462,16 @@ function onCancelDiscard(): void {
           <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
             <BaseTextField v-model="name" label="Nome" required :error="submitted ? errors.name : null" />
             <BaseTextField v-model="nickname" label="Apelido" required :error="submitted ? errors.nickname : null" />
-            <BaseTextField
+            <MaskedField
               v-model="cpf"
               label="CPF"
+              mask="999.999.999-99"
               inputmode="numeric"
-              placeholder="Somente números"
               required
               :error="submitted ? errors.cpf : null"
             />
             <BaseTextField v-model="rg" label="RG" required :error="submitted ? errors.rg : null" />
-            <BaseTextField v-model="birthDate" label="Nascimento" type="date" :error="submitted ? errors.birthDate : null" />
+            <DateField v-model="birthDate" label="Nascimento" :error="submitted ? errors.birthDate : null" />
           </div>
         </FormSection>
 
@@ -474,12 +495,15 @@ function onCancelDiscard(): void {
         <!-- 3. Endereço -->
         <FormSection title="Endereço" icon="pi-map-marker">
           <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-            <BaseTextField
+            <MaskedField
               v-model="street"
               label="Endereço"
               hint="Campo de busca preparado para mapas (NoturnoMAPS)."
+              searchable
+              search-title="Buscar endereço no mapa (em breve)"
               required
               :error="submitted ? errors.street : null"
+              @search="onAddressSearch"
             />
             <BaseTextField v-model="addressNumber" label="Número" required :error="submitted ? errors.addressNumber : null" />
             <BaseTextField v-model="complement" label="Complemento" />
@@ -502,13 +526,16 @@ function onCancelDiscard(): void {
               hint="Preenchida pela cidade."
               disabled
             />
-            <BaseTextField
+            <MaskedField
               v-model="zipCode"
               label="CEP"
+              mask="99999-999"
               inputmode="numeric"
-              placeholder="00000-000"
+              searchable
+              search-title="Consultar endereço por CEP (em breve)"
               required
               :error="submitted ? errors.zipCode : null"
+              @search="onCepSearch"
             />
           </div>
         </FormSection>
@@ -524,11 +551,11 @@ function onCancelDiscard(): void {
               required
               :error="submitted ? errors.companyPhone : null"
             />
-            <BaseTextField
+            <MaskedField
               v-model="personalPhone"
               label="Fone Pessoal (celular)"
+              mask="(99) 99999-9999"
               inputmode="tel"
-              placeholder="(00) 00000-0000"
               required
               :error="submitted ? errors.personalPhone : null"
             />
@@ -546,7 +573,7 @@ function onCancelDiscard(): void {
         <!-- 5. Contrato -->
         <FormSection title="Contrato" icon="pi-briefcase">
           <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-            <BaseTextField v-model="admissionDate" label="Admissão" type="date" :error="submitted ? errors.admissionDate : null" />
+            <DateField v-model="admissionDate" label="Admissão" :error="submitted ? errors.admissionDate : null" />
             <BaseSelect
               v-model="status"
               label="Situação"
@@ -554,11 +581,10 @@ function onCancelDiscard(): void {
               option-label="label"
               option-value="value"
             />
-            <BaseTextField
+            <DateField
               v-if="isDismissed"
               v-model="dismissalDate"
               label="Demissão"
-              type="date"
               required
               :error="submitted ? errors.dismissalDate : null"
             />

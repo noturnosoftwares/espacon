@@ -26,7 +26,7 @@ import { formatCpf } from '@/shared/extensions'
 import { useEmployeesStore } from '../stores'
 import {
   type Employee,
-  EmployeeStatus,
+  EMPLOYEE_STATUSES,
   employeeStatusLabel,
   employeeStatusSeverity,
 } from '../../domain/models'
@@ -39,9 +39,7 @@ const search = ref('')
 
 const STATUS_OPTIONS: { label: string; value: EmployeeStatusFilter }[] = [
   { label: 'Todas', value: 'all' },
-  { label: 'Ativos', value: EmployeeStatus.Active },
-  { label: 'Afastados', value: EmployeeStatus.OnLeave },
-  { label: 'Demitidos', value: EmployeeStatus.Dismissed },
+  ...EMPLOYEE_STATUSES.map((value) => ({ label: employeeStatusLabel(value), value })),
 ]
 const status = ref<EmployeeStatusFilter>('all')
 

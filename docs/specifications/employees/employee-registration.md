@@ -97,9 +97,12 @@ Nome do Pai, Nascimento, Cônjuge, Complemento, Admissão, Demissão, Comissão,
 
 ### 4.5 Situação e ciclo de vida
 
-* Mapeamento de cor (Design System §2.3 / §10.9):
+* Situações: **ATIVO**, **FÉRIAS**, **ATESTADO**, **LICENÇA MATERNIDADE**, **LICENÇA
+  PATERNIDADE**, **AVISO PRÉVIO**, **AFASTADO**, **AFASTADO (INSS)**, **DEMITIDO**.
+* Mapeamento de cor (Design System §2.3 / §10.9), via `StatusBadge`:
   * **ATIVO** → `feedback-success`
-  * **AFASTADO** → `feedback-warning`
+  * **FÉRIAS / LICENÇA MATERNIDADE / LICENÇA PATERNIDADE** → `feedback-info`
+  * **ATESTADO / AVISO PRÉVIO / AFASTADO / AFASTADO (INSS)** → `feedback-warning`
   * **DEMITIDO** → `feedback-danger`
 * A situação é exibida no cabeçalho do formulário via `StatusBadge` (cor + ícone + rótulo).
 * **Demissão** (data) só faz sentido quando a situação é DEMITIDO — ver pendência P3.
@@ -205,8 +208,14 @@ exception crua (regra do template).
 // domain/enums/employee-status.ts
 export enum EmployeeStatus {
   Active = 'ATIVO',
-  Dismissed = 'DEMITIDO',
+  Vacation = 'FERIAS',
+  MedicalLeave = 'ATESTADO',
+  MaternityLeave = 'LICENCA_MATERNIDADE',
+  PaternityLeave = 'LICENCA_PATERNIDADE',
+  Notice = 'AVISO',              // aviso prévio
   OnLeave = 'AFASTADO',
+  InssLeave = 'AFASTADO_INSS',
+  Dismissed = 'DEMITIDO',
 }
 
 // domain/enums/bank-account-type.ts
@@ -558,16 +567,20 @@ de Cidade/Endereço/CEP/Representante; situação e seu ciclo de vida; permissõ
   (usuários/perfis/operadores), o módulo é **lista** (`/funcionarios`) + **formulário**
   (`/funcionarios/novo`, `/funcionarios/:id`), e **não** um container de abas
   Buscar/Cadastro/Relatório/Gráfico. Relatório e Gráfico entram numa fase futura.
-* **Sem widgets de campo dedicados.** O projeto **não** possui `CpfField`/`MoneyField`/
-  `DateField`/`PhoneField`/`MobilePhoneField` — apenas `BaseTextField`/`LookupField`/
-  `SearchField`. Os campos usam **`BaseTextField`** (com `type=date/number`,
-  `inputmode`) + as **extensions** (`formatCpf`, `isValidMobilePhone`, etc.). Máscaras
-  ricas (CPF/telefone/moeda ao digitar) ficam como melhoria futura.
-* **Lookups Cidade/Representante** usam o novo **`SearchLookupField`** compartilhado
-  (type-to-search via PrimeVue AutoComplete), já que esses cadastros ainda não têm tela
-  de listagem (quando tiverem, migram para `LookupField` + modo seleção — ADR-003).
-  **Endereço** e **CEP** ficam como **texto** (validados), preparados para lookup futuro
-  (NoturnoMAPS / consulta por CEP).
+* **Widgets de campo criados em `shared/widgets`** (o projeto não os tinha):
+  * **`MaskedField`** (PrimeVue `InputMask`, `unmask`→dígitos): **CPF** `999.999.999-99`,
+    **CEP** `99999-999`, **celular** `(99) 99999-9999`. Variante **`searchable`** com
+    gatilho de busca para consulta futura.
+  * **`DateField`** (PrimeVue `DatePicker`): **calendário + digitação** `dd/mm/aaaa`
+    (resolve a dor do `<input type=date>` nativo); `v-model` em ISO. Usado em
+    Nascimento/Admissão/Demissão.
+* **Campos de backend nascem como busca** (regra do produto): **Cidade** e
+  **Representante** usam **`SearchLookupField`** (type-to-search) — esses cadastros ainda
+  não têm tela de listagem (quando tiverem, migram para `LookupField` + modo seleção,
+  ADR-003). **Endereço** (`MaskedField searchable`, futuro NoturnoMAPS) e **CEP**
+  (`MaskedField` com máscara **e** `searchable`, futura consulta por CEP) já têm o gatilho
+  de busca, hoje informando "em breve". **Fone Empresa** segue `BaseTextField` (fixo OU
+  celular, 10/11 dígitos — máscara única seria ambígua).
 * **Barra de ação dirty-aware** (Design System §10.10): Salvar/Cancelar aparecem só com
   alteração; Excluir no cabeçalho; "Sair" é o voltar. Substitui a barra fixa com
   Novo/Modificar/Gravar/Abortar/Apagar/Sair sempre visíveis da redação original.
