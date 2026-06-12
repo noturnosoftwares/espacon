@@ -23,6 +23,7 @@ import {
   BaseTextField,
   ConfirmDialog,
   FormSection,
+  FormSkeleton,
   PageContainer,
   StickyActionBar,
   useAppToast,
@@ -57,13 +58,15 @@ const askingDiscard = ref(false)
 const confirmedLeave = ref(false)
 const pendingRoute = ref<RouteLocationNormalized | null>(null)
 
+// Inicialização SÍNCRONA (antes do 1º paint): a store é singleton, então sem isto
+// a tela mostraria o perfil anterior por um instante. Edição → `clearEditing` (a
+// tela exibe o skeleton até carregar); novo → form em branco imediato.
+if (isEdit.value) store.clearEditing()
+else store.startNew()
+
 onMounted(async () => {
   await catalog.ensureLoaded()
-  if (isEdit.value) {
-    await store.loadForEdit(Number(route.params.id))
-  } else {
-    store.startNew()
-  }
+  if (isEdit.value) await store.loadForEdit(Number(route.params.id))
 })
 
 const description = computed({
@@ -196,7 +199,7 @@ function onCancelDiscard(): void {
           </p>
         </div>
         <BaseButton
-          v-if="isEdit"
+          v-if="isEdit && store.editing"
           variant="danger"
           icon="pi-trash"
           label="Excluir"
@@ -220,7 +223,11 @@ function onCancelDiscard(): void {
         {{ store.errorMessage }}
       </p>
 
-      <template v-if="store.editing">
+      <!-- Carregando o registro (ou ainda sem o registro, em edição): skeleton em
+           vez do conteúdo anterior (§10.11). -->
+      <FormSkeleton v-if="store.loading || (isEdit && !store.editing)" :sections="2" :fields="2" />
+
+      <template v-else-if="store.editing">
         <!-- Dados do perfil -->
         <FormSection title="Dados do perfil" icon="pi-id-card">
           <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">

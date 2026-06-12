@@ -56,6 +56,10 @@ export const useCashOperatorsStore = defineStore('cash-operators', () => {
   }
 
   async function loadForEdit(id: number): Promise<boolean> {
+    // Limpa o registro anterior ANTES de carregar: a store é singleton, então
+    // sem isto a tela exibiria o `editing` velho enquanto o novo chega (flash de
+    // conteúdo sujo). Com `editing` nulo + `loading`, a tela mostra o skeleton.
+    crud.clearEditing()
     const operator = await crud.run(() => usecases.getCashOperatorById(id))
     if (operator) crud.beginEdit(operator)
     return operator !== null

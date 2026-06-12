@@ -25,6 +25,7 @@ import {
   BaseTextField,
   ConfirmDialog,
   FormSection,
+  FormSkeleton,
   LookupField,
   PageContainer,
   StickyActionBar,
@@ -76,30 +77,39 @@ const confirmedLeave = ref(false)
 const pendingRoute = ref<RouteLocationNormalized | null>(null)
 
 /**
- * Inicialização e **retorno da seleção de perfil** (ADR — listagem reutilizável).
+ * Inicialização e **retorno da seleção de perfil/operador** (ADR — listagem
+ * reutilizável).
  *
- * Como não há keep-alive, esta page **remonta** ao voltar de `/perfis`. Para não
- * perder o formulário em andamento, se houver uma requisição de seleção desta
- * mesma tela (`pendingFor(route.path)`) **e** a edição preservada na store for a
- * deste registro, consumimos o resultado (aplicando o perfil quando escolhido) e
- * **mantemos** a edição. Caso contrário, inicializamos normalmente (novo/edição).
+ * Como não há keep-alive, esta page **remonta** ao voltar de `/perfis` ou
+ * `/operadores-de-caixa`. Para não perder o formulário em andamento, se houver uma
+ * requisição de seleção desta mesma tela (`pendingFor(route.path)`) **e** a edição
+ * preservada na store for a deste registro, é um **retorno de seleção**: preserva
+ * a edição e só aplica o registro escolhido. Caso contrário, inicializa.
+ *
+ * A decisão é feita **sincronamente no setup** (antes do 1º paint): sem isto, a
+ * store singleton mostraria o registro anterior por um instante — "conteúdo sujo".
+ * Edição → `clearEditing` (a tela mostra o skeleton até carregar); novo → form em
+ * branco imediato.
  */
+const pendingSelectionId = selection.pendingFor(route.path)
+const isSelectionReturn =
+  !!pendingSelectionId &&
+  !!store.editing &&
+  (isEdit.value ? store.editing.id === Number(route.params.id) : store.isNewRecord)
+
+if (!isSelectionReturn) {
+  if (isEdit.value) store.clearEditing()
+  else store.startNew()
+}
+
 onMounted(async () => {
   await catalog.ensureLoaded()
 
-  const pendingId = selection.pendingFor(route.path)
-  const matchesEditing =
-    !!store.editing &&
-    (isEdit.value ? store.editing.id === Number(route.params.id) : store.isNewRecord)
-
-  // Retorno da seleção (inclui voltar pelo navegador, sem escolher): havendo uma
-  // requisição desta tela e a edição preservada, NÃO reinicializa — só aplica o
-  // perfil quando houve escolha. Preserva o formulário em andamento.
-  if (pendingId && matchesEditing) {
+  if (isSelectionReturn && pendingSelectionId) {
     // O mesmo canal serve perfil e operador: o `resource` da requisição decide o
     // que fazer com o registro devolvido (lido ANTES de consumir).
-    const request = selection.get(pendingId)
-    const result = selection.consume(pendingId)
+    const request = selection.get(pendingSelectionId)
+    const result = selection.consume(pendingSelectionId)
     if (result?.status === 'selected') {
       if (request?.resource === 'operadores') store.applyOperator(result.data as CashOperator)
       else askApplyProfile(result.data as UserProfile)
@@ -107,14 +117,10 @@ onMounted(async () => {
     return
   }
 
-  // Sem edição correspondente: limpa uma requisição órfã e inicializa normalmente.
-  if (pendingId) selection.consume(pendingId)
+  // Requisição órfã (não casa com a edição): descarta para não vazar entre fluxos.
+  if (pendingSelectionId) selection.consume(pendingSelectionId)
 
-  if (isEdit.value) {
-    await store.loadForEdit(Number(route.params.id))
-  } else {
-    store.startNew()
-  }
+  if (isEdit.value) await store.loadForEdit(Number(route.params.id))
 })
 
 /** Helper de binding: campo ↔ `store.patch` (imutável). */
@@ -348,7 +354,7 @@ function onCancelDiscard(): void {
           </p>
         </div>
         <BaseButton
-          v-if="isEdit"
+          v-if="isEdit && store.editing"
           variant="danger"
           icon="pi-trash"
           label="Excluir"
@@ -372,7 +378,11 @@ function onCancelDiscard(): void {
         {{ store.errorMessage }}
       </p>
 
-      <template v-if="store.editing">
+      <!-- Carregando o registro (ou ainda sem o registro, em edição): skeleton em
+           vez do conteúdo anterior (§10.11). -->
+      <FormSkeleton v-if="store.loading || (isEdit && !store.editing)" :sections="3" :fields="2" />
+
+      <template v-else-if="store.editing">
         <!-- Dados básicos -->
         <FormSection title="Dados básicos" icon="pi-id-card">
           <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">

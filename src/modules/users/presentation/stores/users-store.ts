@@ -120,6 +120,11 @@ export const useUsersStore = defineStore('users', () => {
   }
 
   async function loadForEdit(id: number): Promise<boolean> {
+    // Limpa o registro anterior ANTES de carregar (store singleton): evita o flash
+    // do usuário velho enquanto o novo chega — a tela mostra o skeleton.
+    crud.clearEditing()
+    sourceProfileLabel.value = null
+    selectedOperatorLabel.value = null
     const user = await crud.run(() => usecases.getUserById(id))
     if (user) {
       crud.beginEdit(user)

@@ -51,6 +51,9 @@ export const useUserProfilesStore = defineStore('user-profiles', () => {
   }
 
   async function loadForEdit(id: number): Promise<boolean> {
+    // Limpa o registro anterior ANTES de carregar (store singleton): evita o flash
+    // do perfil velho enquanto o novo chega — a tela mostra o skeleton.
+    crud.clearEditing()
     const profile = await crud.run(() => usecases.getUserProfileById(id))
     if (profile) crud.beginEdit(profile)
     return profile !== null
