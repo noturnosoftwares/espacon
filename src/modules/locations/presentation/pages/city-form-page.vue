@@ -14,7 +14,7 @@ import {
   type RouteLocationNormalized,
 } from 'vue-router'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { useSelectionStore } from '@/shared/selection'
+import { restoreSelectionFocus, useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
   BaseTextField,
@@ -66,8 +66,10 @@ if (!isSelectionReturn) {
 
 onMounted(() => {
   if (isSelectionReturn && pendingSelectionId) {
+    const request = selection.get(pendingSelectionId)
     const result = selection.consume(pendingSelectionId)
     if (result?.status === 'selected') applyState(result.data as State)
+    restoreSelectionFocus(request?.focusId)
     return
   }
   if (pendingSelectionId) selection.consume(pendingSelectionId)
@@ -186,6 +188,7 @@ async function onConfirmInactivate(): Promise<void> {
 }
 
 onBeforeRouteLeave((to) => {
+  if (to.query?.mode === 'select') return true
   if (store.isDirty && !confirmedLeave.value) {
     pendingRoute.value = to
     askingDiscard.value = true
@@ -259,6 +262,7 @@ function onCancelDiscard(): void {
               :model-value="store.editing.stateId || null"
               :name="store.editing.uf"
               label="Estado (UF)"
+              focus-id="city-state"
               hint="Selecionar o estado preenche UF e País."
               required
               :error="submitted ? errors.stateId : null"

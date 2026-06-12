@@ -21,7 +21,7 @@ import {
   type RouteLocationNormalized,
 } from 'vue-router'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { useSelectionStore } from '@/shared/selection'
+import { restoreSelectionFocus, useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
   BaseSelect,
@@ -107,6 +107,7 @@ onMounted(() => {
       if (request.filter?.target === 'natural') applyNaturalCity(result.data as City)
       else applyAddressCity(result.data as City)
     }
+    restoreSelectionFocus(request?.focusId)
     return
   }
   if (pendingSelectionId) selection.consume(pendingSelectionId)
@@ -410,6 +411,8 @@ async function onConfirmDelete(): Promise<void> {
 }
 
 onBeforeRouteLeave((to) => {
+  // Abrir um lookup (listagem em modo seleção) faz parte da edição — não é "sair".
+  if (to.query?.mode === 'select') return true
   if (store.isDirty && !confirmedLeave.value) {
     pendingRoute.value = to
     askingDiscard.value = true
@@ -511,6 +514,7 @@ function onCancelDiscard(): void {
               :name="store.editing.naturalCityName"
               label="Naturalidade (cidade)"
               target="natural"
+              focus-id="emp-natural-city"
               hint="Selecionar a cidade preenche a UF."
               required
               :error="submitted ? errors.naturalCity : null"
@@ -541,6 +545,7 @@ function onCancelDiscard(): void {
               :name="store.editing.address.cityName"
               label="Cidade"
               target="address"
+              focus-id="emp-address-city"
               hint="Selecionar a cidade preenche UF e País."
               required
               :error="submitted ? errors.city : null"

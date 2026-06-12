@@ -26,6 +26,8 @@ const props = defineProps<{
   modelValue: CashOperatorAssignment
   /** Rótulo "código — nome" do operador vinculado, resolvido pela página. */
   operatorLabel?: string | null
+  /** Id do campo de operador — para devolver o foco ao voltar da busca. */
+  focusId?: string
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: CashOperatorAssignment]
@@ -94,6 +96,7 @@ function clearOperatorCode(): void {
       <LookupField
         v-if="isLimited"
         :model-value="modelValue.operatorCode"
+        :input-id="focusId"
         label="Operador (limitado)"
         placeholder="Buscar operador de caixa…"
         hint="Selecione um operador ativo do cadastro."

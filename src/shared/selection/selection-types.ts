@@ -26,6 +26,11 @@ export interface SelectionRequest {
   resource: string
   /** Rota da tela solicitante, para onde a listagem retorna ao confirmar/cancelar. */
   returnTo: string
+  /**
+   * Id do elemento (campo) que disparou a busca. Ao voltar, a tela solicitante
+   * devolve o **foco** (e rola até) este elemento — o usuário não perde o lugar.
+   */
+  focusId?: string
   /** Critério de aceitação que a listagem deve respeitar em `mode=select`. */
   filter?: SelectionFilter
   /** Seleção múltipla (reservado para uso futuro). */

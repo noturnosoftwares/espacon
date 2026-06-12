@@ -6,3 +6,4 @@
 export * from './selection-types'
 export * from './selection-store'
 export * from './use-selection-mode'
+export * from './selection-focus'

@@ -43,7 +43,7 @@ function onUpdate(value: Date | Date[] | (Date | null)[] | null | undefined): vo
 }
 
 const inputClass =
-  'h-10 w-full rounded-field border bg-surface-1 pl-3.5 pr-10 text-sm text-content placeholder:text-content-muted outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-40'
+  'h-10 w-full rounded-field border border-line-subtle bg-surface-1 pl-3.5 pr-10 text-sm text-content placeholder:text-content-muted outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-40'
 </script>
 
 <template>

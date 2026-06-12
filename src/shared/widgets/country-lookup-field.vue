@@ -27,6 +27,8 @@ const props = withDefaults(
     disabled?: boolean
     /** Discriminador quando há mais de um lookup do mesmo recurso na tela. */
     target?: string
+    /** Id do campo — para devolver o foco ao voltar da busca. */
+    focusId?: string
   }>(),
   { name: '', placeholder: 'Pesquisar país…' },
 )
@@ -41,6 +43,7 @@ function onOpen(): void {
   const reqId = selection.open({
     resource: 'paises',
     returnTo: route.path,
+    focusId: props.focusId,
     filter: props.target ? { target: props.target } : undefined,
   })
   void router.push({ name: 'locations-countries', query: { mode: 'select', req: reqId } })
@@ -50,6 +53,7 @@ function onOpen(): void {
 <template>
   <LookupField
     :model-value="modelValue"
+    :input-id="focusId"
     :label="label"
     :placeholder="placeholder"
     :hint="hint"

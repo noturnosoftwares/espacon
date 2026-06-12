@@ -27,6 +27,8 @@ const props = withDefaults(
     required?: boolean
     disabled?: boolean
     target?: string
+    /** Id do campo — para devolver o foco ao voltar da busca. */
+    focusId?: string
   }>(),
   { name: '', placeholder: 'Pesquisar cidade…' },
 )
@@ -44,6 +46,7 @@ function onOpen(): void {
   const reqId = selection.open({
     resource: 'cidades',
     returnTo: route.path,
+    focusId: props.focusId,
     filter: Object.keys(filter).length ? filter : undefined,
   })
   void router.push({ name: 'locations-cities', query: { mode: 'select', req: reqId } })
@@ -53,6 +56,7 @@ function onOpen(): void {
 <template>
   <LookupField
     :model-value="modelValue"
+    :input-id="focusId"
     :label="label"
     :placeholder="placeholder"
     :hint="hint"

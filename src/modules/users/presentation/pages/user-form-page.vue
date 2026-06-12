@@ -19,7 +19,7 @@ import {
 import ToggleSwitch from 'primevue/toggleswitch'
 import { type AccessScope, type Permission, type UserRole } from '@/shared/access'
 import { normalizeEmail } from '@/shared/extensions'
-import { useSelectionStore } from '@/shared/selection'
+import { restoreSelectionFocus, useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
   BaseSelect,
@@ -117,6 +117,7 @@ onMounted(async () => {
       if (request?.resource === 'operadores') store.applyOperator(result.data as CashOperator)
       else askApplyProfile(result.data as UserProfile)
     }
+    restoreSelectionFocus(request?.focusId)
     return
   }
 
@@ -182,6 +183,7 @@ function openOperatorSearch(): void {
   const reqId = selection.open({
     resource: 'operadores',
     returnTo: route.path,
+    focusId: 'user-operator-lookup',
     filter: { status: 'active' },
   })
   confirmedLeave.value = true
@@ -201,7 +203,7 @@ function onPermissions(value: Permission[]): void {
  * preservado e voltaremos a ele.
  */
 function openProfileSearch(): void {
-  const reqId = selection.open({ resource: 'perfis', returnTo: route.path })
+  const reqId = selection.open({ resource: 'perfis', returnTo: route.path, focusId: 'user-profile-lookup' })
   confirmedLeave.value = true
   void router.push({ name: 'user-profiles', query: { mode: 'select', req: reqId } })
 }
@@ -458,6 +460,7 @@ function onCancelDiscard(): void {
           v-if="cashOperator"
           :modelValue="cashOperator"
           :operator-label="store.selectedOperatorLabel"
+          focus-id="user-operator-lookup"
           @update:modelValue="onCashOperator"
           @open-operator-search="openOperatorSearch"
           @clear-operator="store.clearOperator"
@@ -494,6 +497,7 @@ function onCancelDiscard(): void {
         >
           <LookupField
             :model-value="store.editing.sourceProfileId ?? null"
+            input-id="user-profile-lookup"
             label="Perfil aplicado"
             placeholder="Buscar perfil…"
             hint="Ao aplicar, as ações do perfil substituem as ações marcadas na matriz."

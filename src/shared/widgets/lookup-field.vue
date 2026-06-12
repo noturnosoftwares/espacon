@@ -23,6 +23,8 @@ const props = withDefaults(
     required?: boolean
     disabled?: boolean
     formatSelected?: (value: string | number) => string
+    /** Id explícito do botão — usado para **devolver o foco** ao voltar da busca. */
+    inputId?: string
   }>(),
   {},
 )
@@ -33,7 +35,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | number | null]
 }>()
 
-const id = useId()
+const generatedId = useId()
+const id = computed(() => props.inputId ?? generatedId)
 
 const hasValue = computed(() => props.modelValue != null && props.modelValue !== '')
 const display = computed(() =>
