@@ -18,6 +18,7 @@ import {
 } from 'vue-router'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { type AccessScope, type Permission, type UserRole } from '@/shared/access'
+import { normalizeEmail } from '@/shared/extensions'
 import { useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
@@ -135,7 +136,11 @@ function field<K extends keyof NonNullable<typeof store.editing>>(key: K) {
 
 const name = field('name')
 const login = field('login')
-const email = field('email')
+// E-mail é sempre gravado em minúsculas (regra do produto).
+const email = computed<string>({
+  get: () => store.editing?.email ?? '',
+  set: (value) => store.patch({ email: normalizeEmail(value) }),
+})
 const active = field('active')
 const role = field('role')
 const accessScope = field('accessScope')

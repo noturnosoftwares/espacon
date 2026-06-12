@@ -36,7 +36,7 @@ import {
   useAppToast,
 } from '@/shared/widgets'
 import { isOk } from '@/shared/result'
-import { type Address, copyAddress } from '@/shared/models'
+import { type Address, type BrazilianState, copyAddress, findStateByUf } from '@/shared/models'
 import {
   isAdult,
   isCepWithinUf,
@@ -47,6 +47,7 @@ import {
   isValidFullName,
   isValidMobilePhone,
   isValidPhone,
+  normalizeEmail,
   onlyDigits,
 } from '@/shared/extensions'
 import { useEmployeesStore } from '../stores'
@@ -132,10 +133,21 @@ const fatherName = text('fatherName')
 const motherName = text('motherName')
 const spouseName = text('spouseName')
 const birthplace = text('birthplace')
-const birthplaceUf = computed<string>({
-  get: () => store.editing?.birthplaceUf ?? '',
-  set: (value) => store.patch({ birthplaceUf: value.toUpperCase().slice(0, 2) }),
-})
+// UF da naturalidade — campo de **busca inline** (regra: referência de backend
+// nasce como pesquisa). Grava só a sigla (`birthplaceUf`); exibe "UF — Estado".
+const selectedBirthState = computed<BrazilianState | null>(() =>
+  findStateByUf(store.editing?.birthplaceUf),
+)
+function onBirthStateSelect(state: BrazilianState): void {
+  store.patch({ birthplaceUf: state.uf })
+}
+function onBirthStateClear(): void {
+  store.patch({ birthplaceUf: '' })
+}
+async function searchStates(query: string): Promise<BrazilianState[]> {
+  const result = await lookups.searchStates(query)
+  return isOk(result) ? result.data : []
+}
 
 // Endereço
 const street = computed<string>({
@@ -202,7 +214,10 @@ const personalPhone = computed<string>({
   get: () => store.editing?.personalPhone ?? '',
   set: (value) => store.patch({ personalPhone: onlyDigits(value) }),
 })
-const email = text('email')
+const email = computed<string>({
+  get: () => store.editing?.email ?? '',
+  set: (value) => store.patch({ email: normalizeEmail(value) }),
+})
 
 // Contrato
 const admissionDate = computed<string | null>({
@@ -482,12 +497,17 @@ function onCancelDiscard(): void {
             <BaseTextField v-model="motherName" label="Nome da Mãe" required :error="submitted ? errors.motherName : null" />
             <BaseTextField v-model="spouseName" label="Cônjuge" />
             <BaseTextField v-model="birthplace" label="Naturalidade" required :error="submitted ? errors.birthplace : null" />
-            <BaseTextField
-              v-model="birthplaceUf"
+            <SearchLookupField
+              :model-value="selectedBirthState"
               label="UF da Naturalidade"
-              placeholder="UF"
+              option-label="label"
+              placeholder="Pesquisar estado/UF…"
+              :min-length="1"
               required
               :error="submitted ? errors.birthplaceUf : null"
+              :search-fn="searchStates"
+              @select="onBirthStateSelect"
+              @clear="onBirthStateClear"
             />
           </div>
         </FormSection>
@@ -512,7 +532,7 @@ function onCancelDiscard(): void {
               :model-value="selectedCity"
               label="Cidade"
               option-label="name"
-              placeholder="Digite ≥ 2 letras…"
+              placeholder="Pesquisar cidade…"
               hint="Selecionar a cidade preenche a UF."
               required
               :error="submitted ? errors.city : null"
@@ -620,7 +640,7 @@ function onCancelDiscard(): void {
               :model-value="selectedRepresentative"
               label="Representante"
               option-label="name"
-              placeholder="Buscar representante…"
+              placeholder="Pesquisar representante…"
               :min-length="1"
               required
               :error="submitted ? errors.representative : null"

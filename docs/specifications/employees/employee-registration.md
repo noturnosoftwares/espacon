@@ -74,18 +74,20 @@ Nome do Pai, Nascimento, Cônjuge, Complemento, Admissão, Demissão, Comissão,
 | R7 | CEP | Deve ser CEP **válido** (8 dígitos) **e coerente com a UF** do endereço (faixa dos Correios). Campo também é de **pesquisa** (consulta futura de endereço por CEP). | `isValidCep` (existe) + `isCepWithinUf` (**criar**) |
 | R8 | Fone Pessoal | Validar o máximo possível para aceitar **apenas celular**: 11 dígitos, DDD válido (11–99) e 9º dígito (após DDD) = `9`. | `isValidMobilePhone` (**criar**) |
 | R9 | Fone Empresa | Telefone brasileiro válido (fixo ou celular, 10 ou 11 dígitos). | `isValidPhone` (existe) |
-| R10 | E-mail | Formato de e-mail válido. | `isValidEmail` (existe) |
+| R10 | E-mail | Formato de e-mail válido; **gravado sempre em minúsculas** (no `set` e no `fromJson`, inclusive vindo do backend). | `isValidEmail` (existe) + `normalizeEmail` (existe) |
 | R11 | Admissão | **Não** pode ser maior que a data atual. | `isNotFutureDate` (**criar**) |
 | R12 | Nascimento | Quando informado, a pessoa deve ter **≥ 18 anos** na data atual. | `isAdult` (**criar**) |
 | R13 | Salário | Numérico, ≥ 0, formatação monetária pt-BR. | `MoneyField` + `formatCurrency` (existem) |
 | R14 | Comissão | Numérico, ≥ 0; default `0,00`. | `MoneyField` |
 | R15 | Situação | Um dos valores do enum `EmployeeStatus` (ATIVO / DEMITIDO / AFASTADO). | combobox (lista estática) |
 | R16 | Tipo de conta | Um dos valores do enum `BankAccountType` (CORRENTE / POUPANCA). | combobox (lista estática) |
-| R17 | É representante? | Quando marcado, o campo **Representante** torna-se relevante (lookup). | `RepresentativeLookupField` (**criar**) |
+| R17 | É representante? | Quando marcado, o campo **Representante** torna-se relevante (busca). | `SearchLookupField` + `searchRepresentatives` |
+| R18 | UF da Naturalidade | Campo de **pesquisa** (type-to-search) sobre os estados/UF — grava a sigla, exibe "UF — Estado". Vira do Cadastro de Estados no futuro. | `SearchLookupField` + `searchStates` (lista `BRAZILIAN_STATES`) |
 
-> **Combobox × Lookup (Design System §9.2):** Situação e Tipo de conta são listas **pequenas
-> e estáticas** → combobox. Cidade, Endereço, CEP e Representante são **dados de backend** →
-> campos de busca (lookup), nunca `select` gigante.
+> **Combobox × Busca (Design System §8.1/§9.2):** Situação e Tipo de conta são listas **pequenas
+> e estáticas** → combobox. Cidade, **UF/Estado** (endereço e naturalidade), Endereço, CEP e
+> Representante são **dados de backend** → **busca inline** (`SearchLookupField`), nunca `select`
+> gigante nem digitação livre. Regra geral do produto: referência de backend nasce como busca.
 
 ### 4.4 Indicador de código
 
@@ -389,8 +391,10 @@ export function copyEmployee(base: Employee, changes: Partial<Employee>): Employ
 * `GetEmployeeById` — carregar registro para edição.
 * `SaveEmployee` — criar/atualizar (decide pelo `id`).
 * `DeleteEmployee` — excluir com confirmação na presentation.
-* `SearchCities` — lookup de cidade (retorna `City[]`, inclui UF).
-* `SearchRepresentatives` — lookup de representante.
+* `SearchCities` — busca de cidade (retorna `City[]`, inclui UF).
+* `SearchRepresentatives` — busca de representante.
+* `SearchStates` — busca de estado/UF (retorna `BrazilianState[]`; lista `BRAZILIAN_STATES`
+  compartilhada, até o Cadastro de Estados existir).
 * `LookupAddressByZip` *(placeholder/futuro)* — consulta de endereço por CEP.
 
 ---
@@ -401,6 +405,7 @@ export function copyEmployee(base: Employee, changes: Partial<Employee>): Employ
   `data/repositories/employee-repository.ts`.
 * `CityLookupRepository` → `MockCityProvider`.
 * `RepresentativeLookupRepository` → `MockRepresentativeProvider`.
+* `StateLookupRepository` → `MockStateProvider` (sobre `BRAZILIAN_STATES`, em `shared/models`).
 
 ---
 
@@ -411,8 +416,9 @@ export function copyEmployee(base: Employee, changes: Partial<Employee>): Employ
 * `MockCityProvider` — lista enxuta de cidades com UF (ex.: capitais) até o Cadastro de
   Cidades existir.
 * `MockRepresentativeProvider` — alguns representantes fictícios.
-* **Futuro (REST):** `RestEmployeeProvider`, `RestCityProvider`, `RestCepProvider` com o
-  mesmo contrato JSON — sem impacto em repository/usecase/store/widgets.
+* `MockStateProvider` — busca sobre `BRAZILIAN_STATES` (27 UFs) compartilhada.
+* **Futuro (REST):** `RestEmployeeProvider`, `RestCityProvider`, `RestStateProvider`,
+  `RestCepProvider` com o mesmo contrato — sem impacto em repository/usecase/store/widgets.
 
 ---
 
@@ -450,10 +456,11 @@ export function isAdult(isoBirthDate: string, minYears?: number): boolean;
 ### 14.2 Widgets compartilhados (`src/shared/widgets`)
 
 * `RecordCodeBadge` — indicador de código reutilizável (badge "Novo" / `Cód. NNNNN`).
-* `CityLookupField` — type-to-search de cidade (retorna cidade + UF).
-* `RepresentativeLookupField` — type-to-search de representante.
-* `AddressLookupField` — campo de endereço modo-texto preparado para virar lookup de mapa.
-* `MobilePhoneField` *(ou prop `mobileOnly` em `PhoneField`)* — celular-only.
+* `SearchLookupField` *(genérico, já existe)* — type-to-search reaproveitado por **Cidade**,
+  **UF/Estado** e **Representante** (passa `searchFn`/`optionLabel`). Substitui os
+  `*LookupField` específicos antes previstos — um único widget de busca para todos.
+* `MaskedField`/`DateField` — máscara e data (ver §20.2).
+* `InitialsAvatar` — avatar de iniciais para pessoas.
 
 > Já existem e devem ser reutilizados: `CpfField`, `CepField`, `PhoneField`, `MoneyField`,
 > `DateField`, `SearchField`, `BaseField`, `BaseButton`, `StatusBadge`, `BaseDialog`,
@@ -572,12 +579,13 @@ de Cidade/Endereço/CEP/Representante; situação e seu ciclo de vida; permissõ
     **CEP** `99999-999`, **celular** `(99) 99999-9999`. Variante **`searchable`** com
     gatilho de busca para consulta futura.
   * **`DateField`** (PrimeVue `DatePicker`): **calendário + digitação** `dd/mm/aaaa`
-    (resolve a dor do `<input type=date>` nativo); `v-model` em ISO. Usado em
-    Nascimento/Admissão/Demissão.
-* **Campos de backend nascem como busca** (regra do produto): **Cidade** e
-  **Representante** usam **`SearchLookupField`** (type-to-search) — esses cadastros ainda
-  não têm tela de listagem (quando tiverem, migram para `LookupField` + modo seleção,
-  ADR-003). **Endereço** (`MaskedField searchable`, futuro NoturnoMAPS) e **CEP**
+    (resolve a dor do `<input type=date>` nativo); `v-model` em ISO; **ícone do calendário
+    à direita, centralizado**. Usado em Nascimento/Admissão/Demissão.
+* **Campos de backend nascem como busca inline** (regra do produto — DS §8.1): **Cidade**,
+  **UF da Naturalidade** (estados/UF) e **Representante** usam **`SearchLookupField`**
+  (type-to-search com cara de busca: lupa + "Pesquisar…", lista só ao digitar). É o
+  **padrão**, mesmo depois que esses cadastros existirem — não migram para tela secundária.
+  **Endereço** (`MaskedField searchable`, futuro NoturnoMAPS) e **CEP**
   (`MaskedField` com máscara **e** `searchable`, futura consulta por CEP) já têm o gatilho
   de busca, hoje informando "em breve". **Fone Empresa** segue `BaseTextField` (fixo OU
   celular, 10/11 dígitos — máscara única seria ambígua).

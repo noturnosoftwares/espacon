@@ -8,6 +8,7 @@ import {
   toAccessScope,
   toUserRole,
 } from '@/shared/access'
+import { normalizeEmail } from '@/shared/extensions'
 import {
   type CashOperatorAssignment,
   type CashOperatorAssignmentJson,
@@ -86,7 +87,7 @@ export function userFromJson(json: UserJson): User {
     id: json.id,
     login: json.login,
     name: json.name,
-    email: json.email,
+    email: normalizeEmail(json.email ?? ''),
     active: json.active === true,
     role: toUserRole(json.role),
     accessScope: toAccessScope(json.accessScope),

@@ -33,7 +33,7 @@ const props = withDefaults(
     /** Mínimo de caracteres para disparar a busca (spec: cidade ≥ 2). */
     minLength?: number
   }>(),
-  { minLength: 2 },
+  { minLength: 2, placeholder: 'Pesquisar…' },
 )
 
 const emit = defineEmits<{
@@ -77,28 +77,35 @@ function onClear(): void {
   emit('clear')
 }
 
-// Mesma caixa de 40px dos demais campos (par do BaseTextField/BaseSelect).
+// Mesma caixa de 40px dos demais campos (par do BaseTextField/BaseSelect), com
+// recuo à esquerda para a lupa e à direita para o "limpar" (✕).
 const inputClass = [
-  'h-10 w-full rounded-field border bg-surface-1 px-3.5 text-sm text-content placeholder:text-content-muted outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-40',
+  'h-10 w-full rounded-field border bg-surface-1 pl-10 pr-9 text-sm text-content placeholder:text-content-muted outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-40',
 ]
 </script>
 
 <template>
   <FormField :label="label" :hint="hint" :error="error" :required="required" :html-for="id">
-    <AutoComplete
-      :input-id="id"
-      :model-value="selection"
-      :suggestions="suggestions"
-      :option-label="optionLabel"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      :min-length="minLength"
-      :delay="250"
-      force-selection
-      show-clear
-      fluid
-      complete-on-focus
-      @complete="onComplete"
+    <!-- Cara de busca: lupa fixa à esquerda; a lista só aparece ao digitar
+         (sem `complete-on-focus`), deixando claro que é pesquisa, não combo. -->
+    <div class="relative">
+      <i
+        class="pi pi-search pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-sm text-content-muted"
+        aria-hidden="true"
+      ></i>
+      <AutoComplete
+        :input-id="id"
+        :model-value="selection"
+        :suggestions="suggestions"
+        :option-label="optionLabel"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :min-length="minLength"
+        :delay="250"
+        force-selection
+        show-clear
+        fluid
+        @complete="onComplete"
       @update:model-value="onInternalUpdate"
       @item-select="onItemSelect"
       @clear="onClear"
@@ -122,6 +129,7 @@ const inputClass = [
         }),
         emptyMessage: { class: 'px-3.5 py-2 text-sm text-content-muted' },
       }"
-    />
+      />
+    </div>
   </FormField>
 </template>

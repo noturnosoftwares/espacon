@@ -43,7 +43,7 @@ function onUpdate(value: Date | Date[] | (Date | null)[] | null | undefined): vo
 }
 
 const inputClass =
-  'h-10 w-full rounded-field border bg-surface-1 px-3.5 text-sm text-content placeholder:text-content-muted outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-40'
+  'h-10 w-full rounded-field border bg-surface-1 pl-3.5 pr-10 text-sm text-content placeholder:text-content-muted outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-40'
 </script>
 
 <template>
@@ -59,7 +59,12 @@ const inputClass =
       :disabled="disabled"
       fluid
       :pt="{
+        root: { class: 'relative w-full' },
         pcInputText: { root: { class: [inputClass, error ? '!border-danger' : ''] } },
+        inputIconContainer: {
+          class:
+            'absolute right-3 top-1/2 flex -translate-y-1/2 items-center text-content-muted',
+        },
       }"
       @update:model-value="onUpdate"
     />

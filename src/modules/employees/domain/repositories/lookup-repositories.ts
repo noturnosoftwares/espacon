@@ -1,4 +1,5 @@
 import type { AsyncResult } from '@/shared/result'
+import type { BrazilianState } from '@/shared/models'
 import type { City, RepresentativeSummary } from '../models'
 
 /**
@@ -13,4 +14,8 @@ export interface CityLookupRepository {
 
 export interface RepresentativeLookupRepository {
   search(query: string): Promise<AsyncResult<RepresentativeSummary[]>>
+}
+
+export interface StateLookupRepository {
+  search(query: string): Promise<AsyncResult<BrazilianState[]>>
 }

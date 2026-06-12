@@ -1,5 +1,5 @@
 import { type Address, emptyAddress } from '@/shared/models'
-import { onlyDigits } from '@/shared/extensions'
+import { normalizeEmail, onlyDigits } from '@/shared/extensions'
 import { EmployeeStatus, toEmployeeStatus } from '../enums/employee-status'
 import { type BankAccount, emptyBankAccount } from './bank-account'
 import { toBankAccountType } from '../enums/bank-account-type'
@@ -108,7 +108,7 @@ export function employeeFromJson(json: EmployeeJson): Employee {
     },
     companyPhone: onlyDigits(json.foneEmpresa ?? ''),
     personalPhone: onlyDigits(json.fonePessoal ?? ''),
-    email: json.email ?? '',
+    email: normalizeEmail(json.email ?? ''),
     admissionDate: json.admissao ?? null,
     dismissalDate: json.demissao ?? null,
     salary: Number(json.salario ?? 0),
