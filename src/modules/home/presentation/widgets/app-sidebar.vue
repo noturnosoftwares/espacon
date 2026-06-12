@@ -8,9 +8,14 @@
  * Grupos com sub-itens **expandem** ao clicar; itens `available` navegam, itens
  * `soon` ficam inertes ("em breve"). O item ativo é derivado da rota. Config em
  * `data/mocks/mock-nav.ts`. Rola com scrollbar fina da identidade.
+ *
+ * **Largura ajustável:** o usuário arrasta a borda direita para acomodar rótulos
+ * longos; a largura escolhida é **persistida** (entre sessões) e clampada a um
+ * intervalo confortável. O modo recolhido (só ícones) ignora a largura.
  */
-import { reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { localKeyValueStore } from '@/shared/storage'
 import { homeNavTile, navGroups } from '../../data/mocks/mock-nav'
 import type { NavGroup, NavItem } from '../../domain/models'
 import NavigationTile from './navigation-tile.vue'
@@ -20,6 +25,49 @@ const router = useRouter()
 
 const collapsed = ref(false)
 const expanded = reactive<Record<string, boolean>>({})
+
+// ── Largura ajustável (arrastar a borda direita) ────────────────────────────
+const WIDTH_KEY = 'espacon.sidebar.width'
+const MIN_WIDTH = 180
+const MAX_WIDTH = 380
+const DEFAULT_WIDTH = 224 // equivale ao antigo w-56 (14rem)
+const COLLAPSED_WIDTH = 64 // w-16
+
+function clampWidth(value: number): number {
+  return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(value)))
+}
+
+const width = ref(clampWidth(localKeyValueStore.get<number>(WIDTH_KEY) ?? DEFAULT_WIDTH))
+const dragging = ref(false)
+
+const sidebarWidth = computed(() => (collapsed.value ? COLLAPSED_WIDTH : width.value))
+
+function onResizeMove(event: MouseEvent): void {
+  // A sidebar encosta na borda esquerda da viewport, então a largura é o X do cursor.
+  width.value = clampWidth(event.clientX)
+}
+
+function stopResize(): void {
+  dragging.value = false
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', stopResize)
+  document.body.style.userSelect = ''
+  document.body.style.cursor = ''
+  localKeyValueStore.set(WIDTH_KEY, width.value)
+}
+
+/** Inicia o arrasto da borda direita (desabilitado no modo recolhido). */
+function startResize(): void {
+  if (collapsed.value) return
+  dragging.value = true
+  // Evita seleção de texto e mantém o cursor de redimensionamento durante o arrasto.
+  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'col-resize'
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', stopResize)
+}
+
+onBeforeUnmount(stopResize)
 
 function isHomeActive(): boolean {
   return route.path === homeNavTile.route
@@ -56,8 +104,9 @@ function onGroupActivate(group: NavGroup): void {
 
 <template>
   <aside
-    class="flex h-full shrink-0 flex-col border-r border-line bg-surface-canvas transition-[width] duration-200"
-    :class="collapsed ? 'w-16' : 'w-56'"
+    class="relative flex h-full shrink-0 flex-col border-r border-line bg-surface-canvas"
+    :class="dragging ? '' : 'transition-[width] duration-200'"
+    :style="{ width: `${sidebarWidth}px` }"
     aria-label="Navegação principal"
   >
     <!-- Marca -->
@@ -122,5 +171,22 @@ function onGroupActivate(group: NavGroup): void {
       <i class="pi pi-angle-left transition-transform" :class="{ 'rotate-180': collapsed }" aria-hidden="true"></i>
       <span v-if="!collapsed">Recolher menu</span>
     </button>
+
+    <!-- Alça de redimensionamento: arrasta a borda direita para ajustar a largura
+         (não aparece no modo recolhido). Área de toque de 6px; realça ao passar/arrastar. -->
+    <div
+      v-if="!collapsed"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Redimensionar menu"
+      title="Arraste para ajustar a largura"
+      class="group absolute right-0 top-0 z-10 h-full w-1.5 -mr-0.5 cursor-col-resize"
+      @mousedown.prevent="startResize"
+    >
+      <span
+        class="absolute right-0 top-0 h-full w-0.5 transition-colors"
+        :class="dragging ? 'bg-accent' : 'bg-transparent group-hover:bg-accent/40'"
+      ></span>
+    </div>
   </aside>
 </template>

@@ -268,11 +268,13 @@ obrigatórios, código único). Salvar via store → UseCase.
 ### Seleção reutilizável — listagem em **modo seleção**
 
 Não há componente seletor dedicado: a **própria listagem** abre em
-`?mode=select` (canal `shared/selection`, template ADR-003), lista os operadores
-**ativos** e devolve o `CashOperator` escolhido. Usada no bloco "Caixa" do
-cadastro de Usuário (quando LIMITADO) e, futuramente, nas telas financeiras —
-sempre gravando apenas o `code`. A coluna **Ver detalhes** (botão de ícone) só
-aparece nesse modo.
+`?mode=select` (canal `shared/selection`, template ADR-003) e devolve o
+`CashOperator` escolhido. A restrição a **ativos** vem do **filtro de aceitação**
+da requisição (`filter: { status: 'active' }`) — regra geral do ADR-003: a
+solicitante declara o que é selecionável, a listagem honra (padrão seguro =
+ativos). Usada no bloco "Caixa" do cadastro de Usuário (quando LIMITADO) e,
+futuramente, nas telas financeiras — sempre gravando apenas o `code`. A coluna
+**Ver detalhes** (botão de ícone) só aparece nesse modo.
 
 ---
 

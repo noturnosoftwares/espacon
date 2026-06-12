@@ -30,6 +30,16 @@ export function useSelectionMode<T>() {
     typeof route.query.req === 'string' ? route.query.req : null,
   )
 
+  /**
+   * Critério de aceitação declarado pela tela solicitante (ex.: `{ status:
+   * 'active' }`). A listagem usa para **restringir** o que é selecionável. `null`
+   * quando não há requisição/critério — a listagem aplica seu padrão.
+   */
+  const selectionFilter = computed(() => {
+    const id = requestId.value
+    return id ? (selection.get(id)?.filter ?? null) : null
+  })
+
   /** Volta à solicitante pelo `returnTo` da requisição (robusto a detours). */
   function returnToRequester(id: string): void {
     const req = selection.get(id)
@@ -56,5 +66,5 @@ export function useSelectionMode<T>() {
     returnToRequester(id)
   }
 
-  return { isSelectMode, requestId, confirmSelection, cancelSelection }
+  return { isSelectMode, requestId, selectionFilter, confirmSelection, cancelSelection }
 }

@@ -34,8 +34,16 @@ import type { CashOperatorStatusFilter } from '../../domain/repositories'
 
 const router = useRouter()
 const store = useCashOperatorsStore()
-const { isSelectMode, requestId, confirmSelection, cancelSelection } =
+const { isSelectMode, requestId, selectionFilter, confirmSelection, cancelSelection } =
   useSelectionMode<CashOperator>()
+
+// Critério de aceitação do modo seleção (template ADR-003): a tela solicitante
+// declara o que pode ser escolhido (ex.: `{ status: 'active' }`). Padrão seguro =
+// "Ativos" — um operador vinculado precisa estar ativo.
+const acceptedStatus = computed<CashOperatorStatusFilter>(() => {
+  const s = selectionFilter.value?.status
+  return s === 'active' || s === 'inactive' || s === 'all' ? s : 'active'
+})
 
 // Em modo seleção, detours para detalhe/novo carregam `mode/req` para que a
 // listagem **reentre em modo seleção** ao voltar (e o registro editado/incluído
@@ -56,7 +64,7 @@ const STATUS_OPTIONS: { label: string; value: CashOperatorStatusFilter }[] = [
   { label: 'Ativos', value: 'active' },
   { label: 'Inativos', value: 'inactive' },
 ]
-const status = ref<CashOperatorStatusFilter>(isSelectMode.value ? 'active' : 'all')
+const status = ref<CashOperatorStatusFilter>(isSelectMode.value ? acceptedStatus.value : 'all')
 
 const hasActiveFilters = computed(() => !!store.currentSearch || status.value !== 'all')
 
@@ -68,8 +76,8 @@ onMounted(() => {
     if (!isSelectMode.value) status.value = store.currentStatus
     void store.refresh()
   } else if (isSelectMode.value) {
-    // Em seleção, já abre listando os ativos (sem exigir uma busca primeiro).
-    store.applyFilters({ search: '', status: 'active' })
+    // Em seleção, já abre listando o status aceito (sem exigir uma busca primeiro).
+    store.applyFilters({ search: '', status: acceptedStatus.value })
   }
 })
 
@@ -102,7 +110,7 @@ function runSearch(): void {
 /** Limpa termo + situação e recarrega (§9.1). Em seleção, mantém "Ativos". */
 function clearSearch(): void {
   search.value = ''
-  status.value = isSelectMode.value ? 'active' : 'all'
+  status.value = isSelectMode.value ? acceptedStatus.value : 'all'
   store.applyFilters({ search: '', status: status.value })
 }
 

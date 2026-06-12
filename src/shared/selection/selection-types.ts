@@ -9,6 +9,15 @@
  * só para "devolver".
  */
 
+/**
+ * Critério de **aceitação** opcional do modo seleção. A tela solicitante declara
+ * quais registros podem ser escolhidos (ex.: só operador `active`, funcionário
+ * não-demitido); a listagem, em `mode=select`, **restringe** a esse critério. É um
+ * mapa livre por recurso — cada listagem interpreta as chaves que conhece (ex.:
+ * `{ status: 'active' }`). Quando ausente, a listagem usa seu padrão seguro.
+ */
+export type SelectionFilter = Record<string, unknown>
+
 /** Pedido de seleção registrado pela tela solicitante (antes de navegar). */
 export interface SelectionRequest {
   /** Id único da requisição (gerado pela store ao abrir). */
@@ -17,6 +26,8 @@ export interface SelectionRequest {
   resource: string
   /** Rota da tela solicitante, para onde a listagem retorna ao confirmar/cancelar. */
   returnTo: string
+  /** Critério de aceitação que a listagem deve respeitar em `mode=select`. */
+  filter?: SelectionFilter
   /** Seleção múltipla (reservado para uso futuro). */
   multiple?: boolean
 }

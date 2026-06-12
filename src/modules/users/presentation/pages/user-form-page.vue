@@ -164,7 +164,13 @@ function onCashOperator(value: CashOperatorAssignment): void {
  * descarte — o formulário é preservado e voltaremos a ele.
  */
 function openOperatorSearch(): void {
-  const reqId = selection.open({ resource: 'operadores', returnTo: route.path })
+  // Critério de aceitação (template ADR-003): só operadores ATIVOS podem ser
+  // vinculados a um usuário. A listagem restringe a seleção a esse status.
+  const reqId = selection.open({
+    resource: 'operadores',
+    returnTo: route.path,
+    filter: { status: 'active' },
+  })
   confirmedLeave.value = true
   void router.push({ name: 'cash-operators', query: { mode: 'select', req: reqId } })
 }

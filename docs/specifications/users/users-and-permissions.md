@@ -58,8 +58,11 @@ fonte de autorização.
   usa **campo de busca/`LookupField`** (DS §9.2), **nunca** digitação livre.
   Acionar o campo **abre a listagem `/operadores-de-caixa` em modo seleção**
   (`?mode=select&req=<id>`) pelo **canal de seleção compartilhado**
-  (`shared/selection`, template ADR-003) — só **ativos** são selecionáveis; o
-  rótulo "código — nome" é resolvido via `getActiveCashOperators`.
+  (`shared/selection`, template ADR-003). Só **ativos** são selecionáveis — via o
+  **filtro de aceitação** da requisição (`filter: { status: 'active' }`, ADR-003 §7:
+  a solicitante declara o que pode ser vinculado e a listagem trava a seleção a
+  isso). O mesmo padrão valerá para o **funcionário** (excluir demitidos) quando o
+  módulo existir. O rótulo "código — nome" é resolvido via `getActiveCashOperators`.
 - **`remote`:** habilita features que atravessam empresas (cross-company);
   avaliado só quando a operação for remota.
 

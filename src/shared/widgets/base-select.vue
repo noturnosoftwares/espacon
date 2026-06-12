@@ -78,6 +78,22 @@ function onChange(event: { value: unknown }): void {
         root: { class: rootClass },
         label: { class: 'min-w-0 flex-1 truncate pl-3.5 pr-2 text-left' },
         dropdown: { class: 'flex w-9 shrink-0 items-center justify-center text-content-muted' },
+        overlay: {
+          class:
+            'mt-1 overflow-hidden rounded-field border border-line bg-surface-2 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.7)]',
+        },
+        list: { class: 'flex flex-col gap-0.5 p-1' },
+        option: ({ context }) => ({
+          class: [
+            'cursor-pointer rounded-field px-3.5 py-2 text-sm transition-colors',
+            context.selected
+              ? 'bg-accent-soft text-accent'
+              : context.focused
+                ? 'bg-surface-3 text-content'
+                : 'text-content-soft hover:bg-surface-3 hover:text-content',
+          ],
+        }),
+        emptyMessage: { class: 'px-3.5 py-2 text-sm text-content-muted' },
       }"
       @update:model-value="onUpdate"
       @change="onChange"
