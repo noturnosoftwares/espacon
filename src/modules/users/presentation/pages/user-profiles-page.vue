@@ -23,6 +23,7 @@ import {
   BaseDataTable,
   EmptyState,
   PageContainer,
+  RecordCodeBadge,
   SearchField,
 } from '@/shared/widgets'
 import { useUserProfilesStore } from '../stores'
@@ -58,6 +59,7 @@ onMounted(() => {
 // detalhes" é o único caminho para abrir o registro. Em modo gestão o clique
 // na linha já abre os detalhes — a ação seria redundante.
 const columns = computed(() => [
+  { field: 'id', label: 'Cód.', sortable: true, width: '7rem' },
   { field: 'description', label: 'Descrição', sortable: true },
   {
     field: 'resources',
@@ -189,6 +191,9 @@ function onRowActivate(profile: UserProfile): void {
         @row-click="onRowActivate"
         @load-more="store.loadNext"
       >
+        <template #cell-id="{ row }">
+          <RecordCodeBadge :code="(row as UserProfile).id" />
+        </template>
         <template #cell-resources="{ row }">
           <span class="text-content-soft">{{ (row as UserProfile).permissions.length }} recurso(s)</span>
         </template>

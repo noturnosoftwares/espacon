@@ -88,6 +88,24 @@
   --color-info: var(--color-noturno-blue-light);
   --color-info-soft: color-mix(in oklab, var(--color-noturno-blue) 14%, transparent);
 
+  /*
+   * Avatar de iniciais (identidade de pessoas — §8.11). Conjunto curado de
+   * matizes **da paleta oficial** (derivados dos primitivos `noturno-*`),
+   * **evitando vermelho/amarelo** (que carregam semântica de erro/alerta). Cada
+   * cor = tint suave @18% (fundo) + cor cheia (texto). A escolha por pessoa é
+   * determinística (hash do nome), então a mesma pessoa tem sempre a mesma cor.
+   */
+  --color-avatar-1: var(--color-noturno-orange);
+  --color-avatar-1-soft: color-mix(in oklab, var(--color-noturno-orange) 18%, transparent);
+  --color-avatar-2: var(--color-noturno-green);
+  --color-avatar-2-soft: color-mix(in oklab, var(--color-noturno-green) 18%, transparent);
+  --color-avatar-3: var(--color-noturno-green-light);
+  --color-avatar-3-soft: color-mix(in oklab, var(--color-noturno-green-light) 18%, transparent);
+  --color-avatar-4: var(--color-noturno-blue-light);
+  --color-avatar-4-soft: color-mix(in oklab, var(--color-noturno-blue-light) 18%, transparent);
+  --color-avatar-5: var(--color-noturno-blue-dark);
+  --color-avatar-5-soft: color-mix(in oklab, var(--color-noturno-blue-dark) 18%, transparent);
+
   /* Raio de borda (§5). */
   --radius-field: 10px;
   --radius-card: 14px;

@@ -25,6 +25,7 @@ import {
   FormSection,
   FormSkeleton,
   PageContainer,
+  RecordCodeBadge,
   StickyActionBar,
   useAppToast,
 } from '@/shared/widgets'
@@ -197,6 +198,9 @@ function onCancelDiscard(): void {
           <p class="mt-1 text-sm text-content-muted">
             Modelo de cadastro — ao ser aplicado, redefine as ações do usuário.
           </p>
+          <div v-if="store.editing" class="mt-2 flex flex-wrap items-center gap-2">
+            <RecordCodeBadge :code="store.editing.id" />
+          </div>
         </div>
         <BaseButton
           v-if="isEdit && store.editing"

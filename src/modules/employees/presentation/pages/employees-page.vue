@@ -16,6 +16,7 @@ import {
   BaseDataTable,
   BaseSelect,
   EmptyState,
+  InitialsAvatar,
   PageContainer,
   RecordCodeBadge,
   SearchField,
@@ -166,6 +167,12 @@ function openEmployee(employee: Employee): void {
       >
         <template #cell-id="{ row }">
           <RecordCodeBadge :code="(row as Employee).id" />
+        </template>
+        <template #cell-name="{ row }">
+          <span class="flex items-center gap-2.5">
+            <InitialsAvatar :name="(row as Employee).name" size="sm" />
+            <span class="min-w-0 truncate font-medium text-content">{{ (row as Employee).name }}</span>
+          </span>
         </template>
         <template #cell-cpf="{ row }">
           <span class="tabular-nums text-content-soft">{{ formatCpf((row as Employee).cpf) }}</span>

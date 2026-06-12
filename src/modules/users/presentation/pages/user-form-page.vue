@@ -28,6 +28,8 @@ import {
   FormSkeleton,
   LookupField,
   PageContainer,
+  RecordCodeBadge,
+  StatusBadge,
   StickyActionBar,
   useAppToast,
 } from '@/shared/widgets'
@@ -352,6 +354,13 @@ function onCancelDiscard(): void {
           <p class="mt-1 text-sm text-content-muted">
             Acesso individual por usuário e por recurso.
           </p>
+          <div v-if="store.editing" class="mt-2 flex flex-wrap items-center gap-2">
+            <RecordCodeBadge :code="store.editing.id" />
+            <StatusBadge
+              :severity="store.editing.active ? 'success' : 'neutral'"
+              :label="store.editing.active ? 'Ativo' : 'Inativo'"
+            />
+          </div>
         </div>
         <BaseButton
           v-if="isEdit && store.editing"

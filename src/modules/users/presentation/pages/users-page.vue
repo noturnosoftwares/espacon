@@ -18,7 +18,9 @@ import {
   BaseDataTable,
   BaseSelect,
   EmptyState,
+  InitialsAvatar,
   PageContainer,
+  RecordCodeBadge,
   SearchField,
   StatusBadge,
 } from '@/shared/widgets'
@@ -74,6 +76,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
 }
 
 const columns = [
+  { field: 'id', label: 'Cód.', sortable: true, width: '7rem' },
   { field: 'name', label: 'Nome', sortable: true },
   { field: 'login', label: 'Login', sortable: true },
   { field: 'email', label: 'E-mail', sortable: true },
@@ -213,6 +216,15 @@ function openUser(user: User): void {
         @row-click="openUser"
         @load-more="store.loadNext"
       >
+        <template #cell-id="{ row }">
+          <RecordCodeBadge :code="(row as User).id" />
+        </template>
+        <template #cell-name="{ row }">
+          <span class="flex items-center gap-2.5">
+            <InitialsAvatar :name="(row as User).name" size="sm" />
+            <span class="min-w-0 truncate font-medium text-content">{{ (row as User).name }}</span>
+          </span>
+        </template>
         <template #cell-role="{ row }">
           <span class="text-content-soft">{{ ROLE_LABEL[(row as User).role] }}</span>
         </template>
