@@ -50,4 +50,9 @@ export const MOCK_PERMISSION_CATALOG: PermissionCatalogEntryJson[] = [
   // Conhecimento
   { code: 'CON-001', label: 'Base de Conhecimento', section: 'Conhecimento' },
   { code: 'CON-002', label: 'Documentação', section: 'Conhecimento', supportedActions: ['open', 'search'] },
+
+  // Sistema — Localização (fonte única consumida por todo o sistema; ADR-006).
+  { code: 'SIS-001', label: 'País', section: 'Sistema' },
+  { code: 'SIS-002', label: 'Estado', section: 'Sistema' },
+  { code: 'SIS-003', label: 'Cidade', section: 'Sistema' },
 ]

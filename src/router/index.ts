@@ -105,6 +105,63 @@ const router = createRouter({
           meta: { requiresAuth: true },
         },
 
+        // Localização (Sistema) — País/Estado/Cidade, fonte única consumida por
+        // outros cadastros via lookup em modo seleção (spec `locations/location-registry`).
+        {
+          path: '/paises',
+          name: 'locations-countries',
+          component: () => import('@/modules/locations/presentation/pages/countries-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/paises/novo',
+          name: 'country-new',
+          component: () => import('@/modules/locations/presentation/pages/country-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/paises/:id',
+          name: 'country-edit',
+          component: () => import('@/modules/locations/presentation/pages/country-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/estados',
+          name: 'locations-states',
+          component: () => import('@/modules/locations/presentation/pages/states-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/estados/novo',
+          name: 'state-new',
+          component: () => import('@/modules/locations/presentation/pages/state-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/estados/:id',
+          name: 'state-edit',
+          component: () => import('@/modules/locations/presentation/pages/state-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/cidades',
+          name: 'locations-cities',
+          component: () => import('@/modules/locations/presentation/pages/cities-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/cidades/novo',
+          name: 'city-new',
+          component: () => import('@/modules/locations/presentation/pages/city-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/cidades/:id',
+          name: 'city-edit',
+          component: () => import('@/modules/locations/presentation/pages/city-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+
         // Funcionários (Pessoal) — ver spec `employees/employee-registration`.
         {
           path: '/funcionarios',

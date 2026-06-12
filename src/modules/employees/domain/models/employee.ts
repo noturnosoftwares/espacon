@@ -25,8 +25,10 @@ export interface Employee {
   fatherName: string
   motherName: string
   spouseName: string
-  birthplace: string
-  birthplaceUf: string
+  /** Naturalidade — FK de Cidade (módulo `locations`); UF derivada (§16.2). */
+  naturalCityId: number | null
+  naturalCityName: string
+  naturalUf: string
   address: Address
   companyPhone: string
   personalPhone: string
@@ -55,8 +57,9 @@ export interface EmployeeJson {
   nomePai: string
   nomeMae: string
   conjuge: string
-  naturalidade: string
-  ufNaturalidade: string
+  cidadeNaturalId: number | null
+  cidadeNaturalNome: string
+  ufNatural: string
   endereco: string
   numero: string
   complemento: string
@@ -64,6 +67,8 @@ export interface EmployeeJson {
   cidadeId: number | null
   cidadeNome: string
   uf: string
+  paisId: number | null
+  paisNome: string
   cep: string
   foneEmpresa: string
   fonePessoal: string
@@ -94,8 +99,9 @@ export function employeeFromJson(json: EmployeeJson): Employee {
     fatherName: json.nomePai ?? '',
     motherName: json.nomeMae ?? '',
     spouseName: json.conjuge ?? '',
-    birthplace: json.naturalidade ?? '',
-    birthplaceUf: json.ufNaturalidade ?? '',
+    naturalCityId: json.cidadeNaturalId ?? null,
+    naturalCityName: json.cidadeNaturalNome ?? '',
+    naturalUf: json.ufNatural ?? '',
     address: {
       street: json.endereco ?? '',
       number: json.numero ?? '',
@@ -104,6 +110,8 @@ export function employeeFromJson(json: EmployeeJson): Employee {
       cityId: json.cidadeId ?? null,
       cityName: json.cidadeNome ?? '',
       uf: json.uf ?? '',
+      countryId: json.paisId ?? null,
+      countryName: json.paisNome ?? '',
       zipCode: onlyDigits(json.cep ?? ''),
     },
     companyPhone: onlyDigits(json.foneEmpresa ?? ''),
@@ -138,8 +146,9 @@ export function employeeToJson(employee: Employee): EmployeeJson {
     nomePai: employee.fatherName,
     nomeMae: employee.motherName,
     conjuge: employee.spouseName,
-    naturalidade: employee.birthplace,
-    ufNaturalidade: employee.birthplaceUf,
+    cidadeNaturalId: employee.naturalCityId,
+    cidadeNaturalNome: employee.naturalCityName,
+    ufNatural: employee.naturalUf,
     endereco: employee.address.street,
     numero: employee.address.number,
     complemento: employee.address.complement,
@@ -147,6 +156,8 @@ export function employeeToJson(employee: Employee): EmployeeJson {
     cidadeId: employee.address.cityId,
     cidadeNome: employee.address.cityName,
     uf: employee.address.uf,
+    paisId: employee.address.countryId,
+    paisNome: employee.address.countryName,
     cep: onlyDigits(employee.address.zipCode),
     foneEmpresa: onlyDigits(employee.companyPhone),
     fonePessoal: onlyDigits(employee.personalPhone),
@@ -183,8 +194,9 @@ export function emptyEmployee(): Employee {
     fatherName: '',
     motherName: '',
     spouseName: '',
-    birthplace: '',
-    birthplaceUf: '',
+    naturalCityId: null,
+    naturalCityName: '',
+    naturalUf: '',
     address: emptyAddress(),
     companyPhone: '',
     personalPhone: '',

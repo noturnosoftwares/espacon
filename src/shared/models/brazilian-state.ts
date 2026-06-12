@@ -1,14 +1,13 @@
 import { normalizeText } from '@/shared/extensions'
 
 /**
- * BrazilianState — Unidade Federativa (estado) do Brasil. Referência **estável**
- * usada em endereços e naturalidade. Hoje é uma lista estática; quando o
- * **Cadastro de Estados/UF** existir no backend, o `searchStates` passa a vir da
- * API sem alterar o widget/form (regra do produto: campo de referência nasce como
- * **busca inline**).
+ * BrazilianState — lista estática **leve** das 27 UFs do Brasil, para usos rápidos
+ * (selecionar/validar sigla sem abrir um lookup). A **fonte única** de Estados é o
+ * módulo `locations` (cadastro com país, cUF, região e campos fiscais); este helper
+ * é só uma conveniência compartilhada, não substitui aquele cadastro.
  *
- * Contrato: `uf` (sigla de 2 letras, ex.: `'SP'`) é o que se grava; `label`
- * (`'SP — São Paulo'`) é o que se exibe e por onde se pesquisa.
+ * Contrato: `uf` (sigla de 2 letras) é o que se grava; `label` (`'SP — São Paulo'`)
+ * é o que se exibe e por onde se pesquisa.
  */
 export interface BrazilianState {
   uf: string
@@ -52,7 +51,7 @@ export const BRAZILIAN_STATES: BrazilianState[] = RAW.map(([uf, name]) => ({
   label: `${uf} — ${name}`,
 }))
 
-/** Resolve um estado pela sigla (UF) — usado para exibir a seleção atual. */
+/** Resolve um estado pela sigla (UF). */
 export function findStateByUf(uf: string | null | undefined): BrazilianState | null {
   if (!uf) return null
   const wanted = uf.trim().toUpperCase()

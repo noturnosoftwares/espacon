@@ -3,13 +3,15 @@
  * EmployeeFormPage — cadastro/edição de funcionário (rotas `/funcionarios/novo` e
  * `/funcionarios/:id`). Aba **Cadastro** da spec `employee-registration`.
  *
- * Segue o Design System §9.2/§10.10/§10.11: campos **agrupados por contexto** (7
- * seções), cabeçalho com **código** (`RecordCodeBadge`) + **situação**
- * (`StatusBadge`), barra de ação **fixa** dirty-aware, **resumo de validação**,
- * **toast** na falha, **cancelar com confirmação** que restaura (ADR-001), guarda
- * de navegação e **skeleton** ao carregar (§10.11). Lookups de Cidade/Representante
- * são type-to-search (`SearchLookupField`). Nenhuma regra de negócio fora daqui:
- * mutação via `store.patch` (imutável).
+ * Segue o Design System §9.2/§10.10/§10.11: campos **agrupados por contexto**,
+ * cabeçalho com **código** + **situação**, barra de ação **fixa** dirty-aware,
+ * **resumo de validação**, **toast** na falha, **cancelar com confirmação** (ADR-001),
+ * guarda de navegação e **skeleton** ao carregar.
+ *
+ * **Referências (§16):** Cidade (endereço) e Naturalidade consomem o módulo
+ * `locations` via `CityLookupField` (abre a listagem de Cidades em modo seleção e
+ * volta — ADR-003). Representante é `LookupField` cujo cadastro ainda não existe
+ * (abre "em breve"). Nenhuma digitação livre nessas referências.
  */
 import { computed, onMounted, ref } from 'vue'
 import {
@@ -19,24 +21,25 @@ import {
   type RouteLocationNormalized,
 } from 'vue-router'
 import ToggleSwitch from 'primevue/toggleswitch'
+import { useSelectionStore } from '@/shared/selection'
 import {
   BaseButton,
   BaseSelect,
   BaseTextField,
+  CityLookupField,
   ConfirmDialog,
   DateField,
   FormSection,
   FormSkeleton,
+  LookupField,
   MaskedField,
   PageContainer,
   RecordCodeBadge,
-  SearchLookupField,
   StatusBadge,
   StickyActionBar,
   useAppToast,
 } from '@/shared/widgets'
-import { isOk } from '@/shared/result'
-import { type Address, type BrazilianState, copyAddress, findStateByUf } from '@/shared/models'
+import { type Address, copyAddress } from '@/shared/models'
 import {
   isAdult,
   isCepWithinUf,
@@ -51,26 +54,24 @@ import {
   onlyDigits,
 } from '@/shared/extensions'
 import { useEmployeesStore } from '../stores'
-import { makeLookupsUseCases } from '../../data/application'
 import {
   type BankAccount,
   BankAccountType,
-  type City,
   type Employee,
   EMPLOYEE_STATUSES,
   EmployeeStatus,
-  type RepresentativeSummary,
   bankAccountTypeLabel,
   copyBankAccount,
   employeeStatusLabel,
   employeeStatusSeverity,
 } from '../../domain/models'
+import type { City } from '@/modules/locations/domain/models'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useAppToast()
 const store = useEmployeesStore()
-const lookups = makeLookupsUseCases()
+const selection = useSelectionStore()
 
 const isEdit = computed(() => route.name === 'employee-edit')
 const submitted = ref(false)
@@ -80,12 +81,35 @@ const askingDiscard = ref(false)
 const confirmedLeave = ref(false)
 const pendingRoute = ref<RouteLocationNormalized | null>(null)
 
-// Inicialização SÍNCRONA (antes do 1º paint): evita o flash do registro anterior
-// (store singleton) — edição limpa e mostra skeleton; novo abre em branco (§10.11).
-if (isEdit.value) store.clearEditing()
-else store.startNew()
+/**
+ * Inicialização + **retorno do lookup de Cidade** (ADR-003). Como não há
+ * keep-alive, a page remonta ao voltar de `/cidades`. Se houver requisição de
+ * seleção desta tela (`pendingFor`) e a edição preservada for deste registro, é
+ * um retorno de seleção: preserva a edição e aplica a cidade escolhida. Decisão
+ * **síncrona** (antes do 1º paint) para não vazar o registro anterior.
+ */
+const pendingSelectionId = selection.pendingFor(route.path)
+const isSelectionReturn =
+  !!pendingSelectionId &&
+  !!store.editing &&
+  (isEdit.value ? store.editing.id === Number(route.params.id) : store.isNewRecord)
+
+if (!isSelectionReturn) {
+  if (isEdit.value) store.clearEditing()
+  else store.startNew()
+}
 
 onMounted(() => {
+  if (isSelectionReturn && pendingSelectionId) {
+    const request = selection.get(pendingSelectionId)
+    const result = selection.consume(pendingSelectionId)
+    if (result?.status === 'selected' && request?.resource === 'cidades') {
+      if (request.filter?.target === 'natural') applyNaturalCity(result.data as City)
+      else applyAddressCity(result.data as City)
+    }
+    return
+  }
+  if (pendingSelectionId) selection.consume(pendingSelectionId)
   if (isEdit.value) void store.loadForEdit(Number(route.params.id))
 })
 
@@ -100,14 +124,12 @@ const ACCOUNT_TYPE_OPTIONS = [
 ]
 
 // ── Helpers de binding (imutável via store.patch) ───────────────────────────
-/** Binding de mão-dupla para um campo **string** do Employee. */
 function text(key: keyof Employee) {
   return computed<string>({
     get: () => (store.editing?.[key] as string | null | undefined) ?? '',
     set: (value) => store.patch({ [key]: value } as unknown as Partial<Employee>),
   })
 }
-
 function patchAddress(changes: Partial<Address>): void {
   if (store.editing) store.patch({ address: copyAddress(store.editing.address, changes) })
 }
@@ -132,21 +154,12 @@ const birthDate = computed<string | null>({
 const fatherName = text('fatherName')
 const motherName = text('motherName')
 const spouseName = text('spouseName')
-const birthplace = text('birthplace')
-// UF da naturalidade — campo de **busca inline** (regra: referência de backend
-// nasce como pesquisa). Grava só a sigla (`birthplaceUf`); exibe "UF — Estado".
-const selectedBirthState = computed<BrazilianState | null>(() =>
-  findStateByUf(store.editing?.birthplaceUf),
-)
-function onBirthStateSelect(state: BrazilianState): void {
-  store.patch({ birthplaceUf: state.uf })
+/** Naturalidade — lookup de Cidade (módulo locations); preenche UF derivada. */
+function applyNaturalCity(city: City): void {
+  store.patch({ naturalCityId: city.id, naturalCityName: city.name, naturalUf: city.uf })
 }
-function onBirthStateClear(): void {
-  store.patch({ birthplaceUf: '' })
-}
-async function searchStates(query: string): Promise<BrazilianState[]> {
-  const result = await lookups.searchStates(query)
-  return isOk(result) ? result.data : []
+function onNaturalCityClear(): void {
+  store.patch({ naturalCityId: null, naturalCityName: '', naturalUf: '' })
 }
 
 // Endereço
@@ -170,20 +183,18 @@ const zipCode = computed<string>({
   get: () => store.editing?.address.zipCode ?? '',
   set: (value) => patchAddress({ zipCode: onlyDigits(value) }),
 })
-const selectedCity = computed<City | null>(() =>
-  store.editing?.address.cityId != null
-    ? { id: store.editing.address.cityId, name: store.editing.address.cityName, uf: store.editing.address.uf }
-    : null,
-)
-function onCitySelect(city: City): void {
-  patchAddress({ cityId: city.id, cityName: city.name, uf: city.uf })
+/** Cidade do endereço — lookup; selecionar preenche UF e País (denormalizados). */
+function applyAddressCity(city: City): void {
+  patchAddress({
+    cityId: city.id,
+    cityName: city.name,
+    uf: city.uf,
+    countryId: city.countryId,
+    countryName: city.countryName,
+  })
 }
-function onCityClear(): void {
-  patchAddress({ cityId: null, cityName: '', uf: '' })
-}
-async function searchCities(query: string): Promise<City[]> {
-  const result = await lookups.searchCities(query)
-  return isOk(result) ? result.data : []
+function onAddressCityClear(): void {
+  patchAddress({ cityId: null, cityName: '', uf: '', countryId: null, countryName: '' })
 }
 
 // Buscas de backend ainda não implementadas (spec §17): o campo já nasce no
@@ -245,7 +256,6 @@ const commission = computed<string>({
 const status = computed<EmployeeStatus>({
   get: () => store.editing?.status ?? EmployeeStatus.Active,
   set: (value) => {
-    // P3: demissão só faz sentido quando DEMITIDO — ao sair, limpa a data.
     if (value === EmployeeStatus.Dismissed) store.patch({ status: value })
     else store.patch({ status: value, dismissalDate: null })
   },
@@ -261,20 +271,21 @@ const isRepresentative = computed<boolean>({
   },
 })
 const group = text('group')
-const selectedRepresentative = computed<RepresentativeSummary | null>(() =>
-  store.editing?.representativeId != null
-    ? { id: store.editing.representativeId, name: store.editing.representativeName }
-    : null,
-)
-function onRepresentativeSelect(rep: RepresentativeSummary): void {
-  store.patch({ representativeId: rep.id, representativeName: rep.name })
+/**
+ * Representante é referência de cadastro (Comercial) que ainda não tem tela — o
+ * lookup abre "em breve". Quando o módulo existir, troca o `open` por abrir a
+ * listagem de Representantes em modo seleção (ADR-003).
+ */
+function onOpenRepresentativeSearch(): void {
+  toast.add({
+    severity: 'info',
+    summary: 'Cadastro de Representantes',
+    detail: 'A pesquisa de representante abrirá o cadastro quando o módulo existir.',
+    life: 4000,
+  })
 }
 function onRepresentativeClear(): void {
   store.patch({ representativeId: null, representativeName: '' })
-}
-async function searchRepresentatives(query: string): Promise<RepresentativeSummary[]> {
-  const result = await lookups.searchRepresentatives(query)
-  return isOk(result) ? result.data : []
 }
 
 // Bancário
@@ -309,8 +320,7 @@ const errors = computed(() => {
       : !isValidFullName(e.motherName)
         ? 'Nome composto inválido.'
         : null,
-    birthplace: !e.birthplace.trim() ? 'Informe a naturalidade.' : null,
-    birthplaceUf: !e.birthplaceUf.trim() ? 'Informe a UF.' : null,
+    naturalCity: e.naturalCityId == null ? 'Selecione a naturalidade (cidade).' : null,
     street: !e.address.street.trim() ? 'Informe o endereço.' : null,
     addressNumber: !e.address.number.trim() ? 'Informe o número.' : null,
     district: !e.address.district.trim() ? 'Informe o bairro.' : null,
@@ -496,19 +506,17 @@ function onCancelDiscard(): void {
             <BaseTextField v-model="fatherName" label="Nome do Pai" />
             <BaseTextField v-model="motherName" label="Nome da Mãe" required :error="submitted ? errors.motherName : null" />
             <BaseTextField v-model="spouseName" label="Cônjuge" />
-            <BaseTextField v-model="birthplace" label="Naturalidade" required :error="submitted ? errors.birthplace : null" />
-            <SearchLookupField
-              :model-value="selectedBirthState"
-              label="UF da Naturalidade"
-              option-label="label"
-              placeholder="Pesquisar estado/UF…"
-              :min-length="1"
+            <CityLookupField
+              :model-value="store.editing.naturalCityId"
+              :name="store.editing.naturalCityName"
+              label="Naturalidade (cidade)"
+              target="natural"
+              hint="Selecionar a cidade preenche a UF."
               required
-              :error="submitted ? errors.birthplaceUf : null"
-              :search-fn="searchStates"
-              @select="onBirthStateSelect"
-              @clear="onBirthStateClear"
+              :error="submitted ? errors.naturalCity : null"
+              @clear="onNaturalCityClear"
             />
+            <BaseTextField :model-value="store.editing.naturalUf" label="UF (naturalidade)" hint="Preenchida pela cidade." disabled />
           </div>
         </FormSection>
 
@@ -528,24 +536,18 @@ function onCancelDiscard(): void {
             <BaseTextField v-model="addressNumber" label="Número" required :error="submitted ? errors.addressNumber : null" />
             <BaseTextField v-model="complement" label="Complemento" />
             <BaseTextField v-model="district" label="Bairro" required :error="submitted ? errors.district : null" />
-            <SearchLookupField
-              :model-value="selectedCity"
+            <CityLookupField
+              :model-value="store.editing.address.cityId"
+              :name="store.editing.address.cityName"
               label="Cidade"
-              option-label="name"
-              placeholder="Pesquisar cidade…"
-              hint="Selecionar a cidade preenche a UF."
+              target="address"
+              hint="Selecionar a cidade preenche UF e País."
               required
               :error="submitted ? errors.city : null"
-              :search-fn="searchCities"
-              @select="onCitySelect"
-              @clear="onCityClear"
+              @clear="onAddressCityClear"
             />
-            <BaseTextField
-              :model-value="store.editing.address.uf"
-              label="UF (endereço)"
-              hint="Preenchida pela cidade."
-              disabled
-            />
+            <BaseTextField :model-value="store.editing.address.uf" label="UF (endereço)" hint="Preenchida pela cidade." disabled />
+            <BaseTextField :model-value="store.editing.address.countryName" label="País" hint="Preenchido pela cidade." disabled />
             <MaskedField
               v-model="zipCode"
               label="CEP"
@@ -635,17 +637,15 @@ function onCancelDiscard(): void {
             <span class="text-sm text-content-soft">É representante?</span>
           </label>
           <div class="mt-4 grid gap-x-5 gap-y-4 sm:grid-cols-2">
-            <SearchLookupField
+            <LookupField
               v-if="isRepresentative"
-              :model-value="selectedRepresentative"
+              :model-value="store.editing.representativeId"
               label="Representante"
-              option-label="name"
               placeholder="Pesquisar representante…"
-              :min-length="1"
               required
               :error="submitted ? errors.representative : null"
-              :search-fn="searchRepresentatives"
-              @select="onRepresentativeSelect"
+              :format-selected="() => store.editing?.representativeName ?? ''"
+              @open="onOpenRepresentativeSearch"
               @clear="onRepresentativeClear"
             />
             <BaseTextField v-model="group" label="Grupo" placeholder="Texto livre" />

@@ -2,8 +2,8 @@
 
 > **Local sugerido no repositório:** `docs/specifications/locations/location-registry.md`
 > **Módulo:** `src/modules/locations`
-> **Grupo no menu:** Sistema → Localização (País / Estado / Cidade) — *confirmar grupo, ver P1*
-> **Status:** Proposto (aguardando validação das pendências da seção 18)
+> **Grupo no menu:** Sistema → Localização (País / Estado / Cidade) — **confirmado (P1)**
+> **Status:** Aceito — decisões de negócio registradas na seção 22.
 > **Autoria da regra de negócio:** Glenio / Noturno Softwares — esta IA apenas formaliza.
 
 Segue a estrutura obrigatória de `docs/specifications/README.md` e herda o template
@@ -65,6 +65,7 @@ exigirão. Os campos fiscais são criados agora (estrutura), mesmo que ainda nã
 | H4 | No cadastro de Estado, o País é selecionado por **lookup**. |
 | H5 | Qualquer outro cadastro do sistema que precise de país/estado/cidade **consome** estes cadastros via lookup compartilhado (seção 14.2). Proibido texto livre ou lista paralela. |
 | H6 | Registros **não podem ser excluídos** se estiverem referenciados por outro cadastro (RESTRICT). Em vez de excluir, **inativar** (`active = false`). Ver R-Del. |
+| H7 | **O sistema opera com países estrangeiros** (P2). Os códigos **IBGE** (cUF, cMun) e a **região** só se aplicam quando o País é **Brasil**; para país estrangeiro ficam vazios/não aplicáveis e não são validados. Sigla/nome continuam válidos para qualquer país. |
 
 ### 4.2 País — validações
 
@@ -83,10 +84,10 @@ exigirão. Os campos fiscais são criados agora (estrutura), mesmo que ainda nã
 | # | Campo | Regra |
 |---|-------|-------|
 | E-1 | País | Obrigatório (lookup). |
-| E-2 | Código IBGE da UF | Obrigatório quando País = Brasil: **2 dígitos** válidos (campo `cUF` da NF-e; ex.: SP = `35`). Único no país. |
+| E-2 | Código IBGE da UF | Obrigatório quando País = Brasil: **2 dígitos** válidos (campo `cUF` da NF-e; ex.: SP = `35`). Único no país. **Estrangeiro: não aplicável (vazio).** |
 | E-3 | Sigla (UF) | Obrigatória, 2 letras maiúsculas (ex.: `SP`). Única no país. |
 | E-4 | Nome | Obrigatório. |
-| E-5 | Região | Derivada do 1º dígito do código IBGE para UFs brasileiras (1=Norte, 2=Nordeste, 3=Sudeste, 4=Sul, 5=Centro-Oeste). Editável p/ exterior. |
+| E-5 | Região | Derivada do 1º dígito do código IBGE para UFs brasileiras (1=Norte, 2=Nordeste, 3=Sudeste, 4=Sul, 5=Centro-Oeste). **Só para Brasil**; estrangeiro fica vazio. |
 | E-6 | Alíquota IBS estadual (%) | **Fiscal.** Alíquota-padrão do IBS do ente estadual. Opcional agora; usado pelos módulos fiscais. |
 | E-7 | Alíquota de referência estadual (%) | **Fiscal.** Baliza (resolução do Senado). Opcional. |
 | E-8 | Competência híbrida (DF) | **Fiscal.** Boolean. Indica que o ente exerce competência **estadual e municipal** (caso do Distrito Federal). |
@@ -97,7 +98,7 @@ exigirão. Os campos fiscais são criados agora (estrutura), mesmo que ainda nã
 | # | Campo | Regra |
 |---|-------|-------|
 | C-1 | Estado | Obrigatório (lookup). País derivado (H2/H3). |
-| C-2 | Código IBGE do município | Obrigatório quando País = Brasil: **7 dígitos** com dígito verificador válido (campo `cMun` da NF-e). Os 2 primeiros dígitos devem casar com o código IBGE do Estado. Único. |
+| C-2 | Código IBGE do município | Obrigatório quando País = Brasil: **7 dígitos** com dígito verificador válido (campo `cMun` da NF-e). Os 2 primeiros dígitos devem casar com o código IBGE do Estado. Único. **Estrangeiro: não aplicável (vazio).** |
 | C-3 | Nome | Obrigatório. |
 | C-4 | Código TOM/SIAFI | Opcional (usado em alguns documentos fiscais/repasses). |
 | C-5 | Capital | Boolean opcional. |
@@ -109,11 +110,16 @@ exigirão. Os campos fiscais são criados agora (estrutura), mesmo que ainda nã
 
 ### 4.5 IBS combinado (preparação fiscal — não implementar agora, só estruturar)
 
+* As alíquotas IBS (estadual e municipal) são **editadas manualmente** nestas telas (P3).
+  Integração com tabela oficial fica para o futuro, sem mudar o contrato.
 * O IBS de uma operação = **alíquota IBS estadual (destino) + alíquota IBS municipal
   (destino)**. A estrutura acima já permite esse cálculo quando o módulo fiscal existir.
 * Helper futuro sugerido (em `shared/extensions` ou `modules/fiscal`):
   `combinedIbsRate(state, city): number = state.ibsStateRate + city.ibsMunicipalRate`.
-* **Não** criar a lógica de cálculo agora; apenas garantir os campos. Ver pendência P4.
+* **Não** criar a lógica de cálculo agora; apenas garantir os campos (P4 confirmado).
+* **Distrito Federal (P7 — tratamento padrão):** o DF é cadastrado como um **Estado**
+  comum (com `hasHybridCompetence = true`) e Brasília como uma **Cidade** comum. Sem
+  ramificação/lógica especial: o flag é apenas metadado que o módulo fiscal consumirá.
 
 ### 4.6 Exclusão (R-Del)
 
@@ -429,8 +435,9 @@ contexto**; barra de ação fixa; operação keyboard-first; lookups para dados 
 ### 16.2 Mudanças em Naturalidade
 
 * `birthplace` (texto) + `birthplaceUf` (texto) passam a `naturalCityId` (lookup `City`) +
-  `naturalUf` derivado. Permite naturalidade consistente com o cadastro de cidades.
-  *(Confirmar tratamento de naturalidade estrangeira — pendência P5.)*
+  `naturalUf` derivado. Naturalidade do **Funcionário é sempre cidade brasileira** (lookup);
+  não há caso de naturalidade estrangeira aqui (P5). O tratamento de origem estrangeira
+  ficará no módulo de **Cliente**, quando implementado — fora do escopo do Funcionário.
 
 ### 16.3 Remoção de mock próprio
 
@@ -500,28 +507,25 @@ DF e casos especiais); rotas, permissões e como inativar em vez de excluir.
 
 ---
 
-## 22. Pendências / Perguntas em aberto (VALIDAR antes de codar)
+## 22. Decisões de Negócio (aceitas)
 
-* **P1 — Grupo de menu:** Localização entra em **Sistema** (sugerido) ou em grupo próprio?
-* **P2 — Escopo do País:** o sistema operará com países estrangeiros (estados/cidades fora
-  do Brasil) ou apenas Brasil por ora? Isso afeta obrigatoriedade de cUF/cMun.
-* **P3 — Edição de alíquotas:** alíquotas IBS serão editadas **aqui** (manual) ou virão de
-  uma tabela oficial/integração? Default: campo editável agora, integração depois.
-* **P4 — Cálculo do IBS:** confirmamos que **não** se implementa cálculo agora (só os
-  campos)? O cálculo combinado fica para o módulo fiscal.
-* **P5 — Naturalidade estrangeira:** Funcionário nascido no exterior — naturalidade como
-  cidade (lookup) cobre? Ou manter texto livre para esse caso?
-* **P6 — Granularidade fiscal extra:** precisaremos de `cClassTrib`, CST do IBS/CBS,
-  regimes especiais? Esses são por **produto/operação**, não por localização — proposto
-  deixá-los nos cadastros fiscais (produto/NCM), **fora** deste módulo. Confirmar.
-* **P7 — Distrito Federal:** o DF terá registro de Estado **e** de Cidade (com competência
-  híbrida marcada) ou tratamento especial? Default: Estado DF com `hasHybridCompetence`.
+> Respostas validadas por Glenio — travadas nesta spec.
+
+| # | Decisão |
+|---|---------|
+| D1 | **Menu:** Localização entra no grupo **Sistema**. |
+| D2 | **Escopo:** o sistema opera **também com estrangeiros** (países, estados e cidades fora do Brasil). Consequência: códigos **IBGE** (cUF/cMun) e **região** só se aplicam/validam quando o País é Brasil; estrangeiro fica vazio (regra H7). |
+| D3 | **Alíquotas IBS:** editadas **manualmente** nestas telas agora; integração com tabela oficial fica para depois (sem mudar contrato). |
+| D4 | **Cálculo do IBS:** **não** se implementa cálculo agora — apenas os campos. O cálculo combinado (estadual + municipal do destino) é do futuro **módulo fiscal**. |
+| D5 | **Naturalidade estrangeira:** **não** se trata aqui. Naturalidade do Funcionário é sempre cidade brasileira; origem estrangeira ficará no módulo **Cliente** (futuro). |
+| D6 | **Granularidade fiscal extra** (`cClassTrib`, CST do IBS/CBS, regimes especiais): **fora deste módulo** — pertence aos cadastros fiscais por produto/operação (produto/NCM). |
+| D7 | **Distrito Federal:** **tratamento padrão** — DF como Estado comum (`hasHybridCompetence = true`) e Brasília como Cidade comum; sem lógica especial, o flag é só metadado para o fiscal. |
 
 ---
 
 ## 23. Checklist antes de implementar (template)
 
-- [ ] Especificação aprovada e pendências da seção 22 resolvidas.
+- [ ] Especificação aprovada; decisões da seção 22 aplicadas no código.
 - [ ] Contratos JSON confirmados (seção 9).
 - [ ] Extensions criadas com testes (`isValidIbgeMunicipality`, `isValidIbgeUf`,
       `regionFromIbgeUf`, `isValidBacenCode`, `isValidIso2`).

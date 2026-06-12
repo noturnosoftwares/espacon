@@ -16,12 +16,16 @@ export interface Address {
   number: string
   complement: string
   district: string
-  /** Id da cidade (futuro Cadastro de Cidades); preenchido pelo lookup. */
+  /** Id da cidade (FK do módulo `locations`); preenchido pelo lookup de Cidade. */
   cityId: number | null
   /** Nome exibido da cidade selecionada. */
   cityName: string
   /** UF derivada da cidade selecionada (somente leitura na UI). */
   uf: string
+  /** Id do país (FK do módulo `locations`); derivado da cidade/estado. */
+  countryId: number | null
+  /** Nome do país derivado da cidade (somente leitura). */
+  countryName: string
   zipCode: string
 }
 
@@ -34,6 +38,8 @@ export function emptyAddress(): Address {
     cityId: null,
     cityName: '',
     uf: '',
+    countryId: null,
+    countryName: '',
     zipCode: '',
   }
 }

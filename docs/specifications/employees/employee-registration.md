@@ -68,7 +68,7 @@ Nome do Pai, Nascimento, Cônjuge, Complemento, Admissão, Demissão, Comissão,
 | R1 | CPF | Deve ser um CPF **válido** (dígitos verificadores + rejeita sequência repetida). | `isValidCpf` (existe) |
 | R2 | Nome | Deve ser **nome composto válido**: ≥ 2 palavras, cada palavra ≥ 2 letras, apenas letras/acentos/`'`/`-`/espaço, sem dígitos, sem repetição absurda, rejeita entradas inválidas óbvias. | `isValidFullName` (**criar** — seção 10) |
 | R3 | Nome da Mãe | Mesmas regras de R2. | `isValidFullName` (**criar**) |
-| R4 | Cidade | Campo de **pesquisa** (type-to-search), nunca digitação livre. Selecionar uma cidade preenche a UF do endereço. | `CityLookupField` (**criar**) |
+| R4 | Cidade | Campo de **pesquisa somente-leitura** (`LookupField`): abre a listagem de Cidades do módulo `locations` em modo seleção (ADR-003). Nunca digitação. Selecionar preenche UF e País. | `CityLookupField` (módulo `locations`) |
 | R5 | UF (endereço) | **Somente leitura**: vem automaticamente da cidade selecionada (R4). | — |
 | R6 | Endereço | Campo de **pesquisa** preparado para geolocalização futura (NoturnoMAPS). Por ora, texto livre estruturado como lookup. | `AddressLookupField` (**criar**, modo texto) |
 | R7 | CEP | Deve ser CEP **válido** (8 dígitos) **e coerente com a UF** do endereço (faixa dos Correios). Campo também é de **pesquisa** (consulta futura de endereço por CEP). | `isValidCep` (existe) + `isCepWithinUf` (**criar**) |
@@ -81,13 +81,14 @@ Nome do Pai, Nascimento, Cônjuge, Complemento, Admissão, Demissão, Comissão,
 | R14 | Comissão | Numérico, ≥ 0; default `0,00`. | `MoneyField` |
 | R15 | Situação | Um dos valores do enum `EmployeeStatus` (ATIVO / DEMITIDO / AFASTADO). | combobox (lista estática) |
 | R16 | Tipo de conta | Um dos valores do enum `BankAccountType` (CORRENTE / POUPANCA). | combobox (lista estática) |
-| R17 | É representante? | Quando marcado, o campo **Representante** torna-se relevante (busca). | `SearchLookupField` + `searchRepresentatives` |
-| R18 | UF da Naturalidade | Campo de **pesquisa** (type-to-search) sobre os estados/UF — grava a sigla, exibe "UF — Estado". Vira do Cadastro de Estados no futuro. | `SearchLookupField` + `searchStates` (lista `BRAZILIAN_STATES`) |
+| R17 | É representante? | Quando marcado, o campo **Representante** torna-se relevante: `LookupField` (abre o Cadastro de Representantes — hoje "em breve"). Nunca digitação. | `LookupField` |
+| R18 | Naturalidade | Campo de **pesquisa somente-leitura** (`LookupField`): abre a listagem de Cidades (`locations`); grava `naturalCityId`, exibe a cidade e preenche a **UF da naturalidade** (somente leitura). Sempre cidade brasileira (D5). | `CityLookupField` (módulo `locations`) |
 
-> **Combobox × Busca (Design System §8.1/§9.2):** Situação e Tipo de conta são listas **pequenas
-> e estáticas** → combobox. Cidade, **UF/Estado** (endereço e naturalidade), Endereço, CEP e
-> Representante são **dados de backend** → **busca inline** (`SearchLookupField`), nunca `select`
-> gigante nem digitação livre. Regra geral do produto: referência de backend nasce como busca.
+> **Combobox × Lookup (Design System §8.1/§9.2):** Situação e Tipo de conta são listas **pequenas
+> e estáticas** → combobox. Cidade (endereço **e** naturalidade) e Representante são **referências
+> (FK)** → `LookupField` (campo read-only que **abre o cadastro em modo seleção**), nunca `select`
+> gigante nem digitação livre. Endereço/CEP usam o gatilho `searchable` (consulta futura).
+> Regra geral do produto: referência de backend é `LookupField`, não autocomplete inline.
 
 ### 4.4 Indicador de código
 
@@ -144,15 +145,16 @@ Page (EmployeesPage)
 5. Lookup de Cidade preenche UF automaticamente; lookup de CEP/Endereço preparados para
    consulta futura.
 
-### 5.4 Lookup de cidade
+### 5.4 Lookup de cidade (consome o módulo `locations`)
 
 ```txt
-CityLookupField (digita ≥ 2 letras)
-→ SearchCities UseCase
-→ CityLookupRepository
-→ MockCityProvider
-→ AsyncResult<City[]>  → usuário seleciona → preenche cityId, cityName e uf
+CityLookupField (somente-leitura) → clica → abre /cidades?mode=select (modo seleção)
+→ usuário escolhe a cidade na listagem → confirma e devolve (canal shared/selection)
+→ Funcionário grava cityId (FK) + cityName/uf/countryId/countryName (denormalizado)
 ```
+
+> A pesquisa/listagem de cidades é do módulo **`locations`** (fonte única), não do
+> Funcionário. O mesmo vale para a **Naturalidade** (também um `CityLookupField`).
 
 ---
 
@@ -391,11 +393,11 @@ export function copyEmployee(base: Employee, changes: Partial<Employee>): Employ
 * `GetEmployeeById` — carregar registro para edição.
 * `SaveEmployee` — criar/atualizar (decide pelo `id`).
 * `DeleteEmployee` — excluir com confirmação na presentation.
-* `SearchCities` — busca de cidade (retorna `City[]`, inclui UF).
-* `SearchRepresentatives` — busca de representante.
-* `SearchStates` — busca de estado/UF (retorna `BrazilianState[]`; lista `BRAZILIAN_STATES`
-  compartilhada, até o Cadastro de Estados existir).
 * `LookupAddressByZip` *(placeholder/futuro)* — consulta de endereço por CEP.
+
+> **Cidade/Naturalidade não têm UseCase próprio aqui (§16.3):** a busca/seleção é do
+> módulo **`locations`** (`SearchCities` etc.). O Funcionário só guarda o `id` (FK) +
+> denormalizado devolvido pela listagem em modo seleção.
 
 ---
 
@@ -403,9 +405,9 @@ export function copyEmployee(base: Employee, changes: Partial<Employee>): Employ
 
 * `EmployeeRepository` (contrato em `domain/repositories`) → implementado em
   `data/repositories/employee-repository.ts`.
-* `CityLookupRepository` → `MockCityProvider`.
-* `RepresentativeLookupRepository` → `MockRepresentativeProvider`.
-* `StateLookupRepository` → `MockStateProvider` (sobre `BRAZILIAN_STATES`, em `shared/models`).
+* **Lookups de geografia: removidos do Funcionário (§16.3)** — vêm do módulo `locations`
+  (`CityLookupRepository` etc.). Representante continua sem cadastro próprio (lookup "em
+  breve" até o módulo Comercial existir).
 
 ---
 
@@ -413,12 +415,10 @@ export function copyEmployee(base: Employee, changes: Partial<Employee>): Employ
 
 * `MockEmployeeProvider` — CRUD em memória, com cenários realistas (ativos, afastados,
   demitidos; com e sem representante). Latência simulada como no padrão do `auth`.
-* `MockCityProvider` — lista enxuta de cidades com UF (ex.: capitais) até o Cadastro de
-  Cidades existir.
-* `MockRepresentativeProvider` — alguns representantes fictícios.
-* `MockStateProvider` — busca sobre `BRAZILIAN_STATES` (27 UFs) compartilhada.
-* **Futuro (REST):** `RestEmployeeProvider`, `RestCityProvider`, `RestStateProvider`,
-  `RestCepProvider` com o mesmo contrato — sem impacto em repository/usecase/store/widgets.
+* **`MockCityProvider` do Funcionário: removido (§16.3)** — o lookup de cidade vem do
+  módulo `locations`. O Funcionário não mantém lista própria de cidades/estados.
+* **Futuro (REST):** `RestEmployeeProvider` (`/employees`) e `RestCepProvider` com o mesmo
+  contrato — sem impacto em repository/usecase/store/widgets.
 
 ---
 
@@ -456,9 +456,9 @@ export function isAdult(isoBirthDate: string, minYears?: number): boolean;
 ### 14.2 Widgets compartilhados (`src/shared/widgets`)
 
 * `RecordCodeBadge` — indicador de código reutilizável (badge "Novo" / `Cód. NNNNN`).
-* `SearchLookupField` *(genérico, já existe)* — type-to-search reaproveitado por **Cidade**,
-  **UF/Estado** e **Representante** (passa `searchFn`/`optionLabel`). Substitui os
-  `*LookupField` específicos antes previstos — um único widget de busca para todos.
+* `CityLookupField` *(módulo `locations`, já existe)* — `LookupField` read-only que abre a
+  listagem de Cidades em modo seleção. Usado por **Cidade (endereço)** e **Naturalidade**
+  (com `target` distinto). Representante usa o `LookupField` genérico (cadastro "em breve").
 * `MaskedField`/`DateField` — máscara e data (ver §20.2).
 * `InitialsAvatar` — avatar de iniciais para pessoas.
 
@@ -506,11 +506,10 @@ foco automático no primeiro campo ao iniciar Novo.
 ## 16. Mock Inicial
 
 * `MockEmployeeProvider`: ~10 funcionários cobrindo todas as situações (ATIVO/AFASTADO/
-  DEMITIDO), com e sem representante, contas CORRENTE e POUPANCA. Tudo em `AsyncResult`,
-  latência simulada (~500–600 ms, padrão do `auth`).
-* `MockCityProvider`: capitais brasileiras com UF (suficiente para o lookup até o Cadastro
-  de Cidades existir).
-* `MockRepresentativeProvider`: 3–4 representantes fictícios.
+  DEMITIDO), com e sem representante, contas CORRENTE e POUPANCA. `cidadeId`/`cidadeNaturalId`
+  referenciam o mock de **cidades do módulo `locations`** (capitais, ids 1–10). Tudo em
+  `AsyncResult`, latência simulada (~500–600 ms).
+* Cidades/estados/países vêm dos mocks do módulo `locations` (não há mock próprio aqui).
 * CRUD totalmente operável só com mock (criar, listar, editar, excluir).
 
 ---
@@ -538,8 +537,9 @@ ADR-006) e `modules/home` (ativar o item "Funcionário" na sidebar — hoje iner
 **Permissão (ADR-006):** recurso `FUNCIONARIO` com ações `open/search/create/update/delete/
 print/report/chart`.
 
-**Possível ADR novo:** "Padrão de lookup type-to-search para dados de backend" e/ou
-"`EmployeeAddress` como model de endereço compartilhável" (ver P5).
+**Possível ADR novo:** "Referência (FK) via `LookupField` que abre o cadastro em modo
+seleção (não autocomplete inline)" e/ou "`Address` como model de endereço compartilhável"
+(ver P5). A localização (País/Estado/Cidade) como fonte única vive na spec `locations`.
 
 ---
 
@@ -581,11 +581,11 @@ de Cidade/Endereço/CEP/Representante; situação e seu ciclo de vida; permissõ
   * **`DateField`** (PrimeVue `DatePicker`): **calendário + digitação** `dd/mm/aaaa`
     (resolve a dor do `<input type=date>` nativo); `v-model` em ISO; **ícone do calendário
     à direita, centralizado**. Usado em Nascimento/Admissão/Demissão.
-* **Campos de backend nascem como busca inline** (regra do produto — DS §8.1): **Cidade**,
-  **UF da Naturalidade** (estados/UF) e **Representante** usam **`SearchLookupField`**
-  (type-to-search com cara de busca: lupa + "Pesquisar…", lista só ao digitar). É o
-  **padrão**, mesmo depois que esses cadastros existirem — não migram para tela secundária.
-  **Endereço** (`MaskedField searchable`, futuro NoturnoMAPS) e **CEP**
+* **Referências (FK) são `LookupField`** (regra do produto — DS §8.1): campo **somente-leitura**
+  que **abre o cadastro em modo seleção** (ADR-003). **Cidade (endereço)** e **Naturalidade**
+  usam `CityLookupField` (módulo `locations`); **Representante** usa `LookupField` (cadastro
+  "em breve"). Nunca digitação livre nem autocomplete inline. **Endereço** (`MaskedField
+  searchable`, futuro NoturnoMAPS) e **CEP**
   (`MaskedField` com máscara **e** `searchable`, futura consulta por CEP) já têm o gatilho
   de busca, hoje informando "em breve". **Fone Empresa** segue `BaseTextField` (fixo OU
   celular, 10/11 dígitos — máscara única seria ambígua).
