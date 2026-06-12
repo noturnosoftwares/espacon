@@ -10,6 +10,7 @@ import Aura from '@primeuix/themes/aura'
 import App from './App.vue'
 import router from './router'
 import { vCan } from '@/shared/access'
+import { PT_BR_LOCALE } from '@/app/primevue-locale'
 
 const app = createApp(App)
 
@@ -96,6 +97,9 @@ app.directive('can', vCan)
 // Design System — Dark First (ver docs/decisions). O tema escuro é ativado pela
 // classe `.dark` no <html> (index.html); um modo light pode ser avaliado depois.
 app.use(PrimeVue, {
+  // Locale pt-BR global (regra do produto: nada em inglês para o usuário) — vale
+  // para o calendário do DateField, paginação, mensagens de vazio, etc.
+  locale: PT_BR_LOCALE,
   theme: {
     preset: NoturnoPreset,
     options: {
