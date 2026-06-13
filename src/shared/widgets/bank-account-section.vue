@@ -15,6 +15,7 @@ import {
 } from '@/shared/domain'
 import BaseSelect from './base-select.vue'
 import BaseTextField from './base-text-field.vue'
+import DocumentField from './document-field.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -88,10 +89,9 @@ const holderDocument = computed({
     <BaseTextField v-model="accountNumber" label="Conta" :required="required" :disabled="disabled" :error="err('number')" />
     <template v-if="showHolder">
       <BaseTextField v-model="holderName" label="Favorecido" :disabled="disabled" />
-      <BaseTextField
+      <DocumentField
         v-model="holderDocument"
         label="CNPJ/CPF do favorecido"
-        inputmode="numeric"
         :disabled="disabled"
         :error="err('holderDocument')"
       />

@@ -227,10 +227,12 @@ Conhecimento).
     razão/fantasia ou documento** (Enter). Filtros de **Situação** e **Natureza**
     refinam a lista na hora; **scroll infinito** (lotes de 30). O grid mostra
     **avatar + nome**, documento, telefone, **Cidade/UF** e **Situação**.
-  - **Cadastro/edição** — **Novo fornecedor** ou clique numa linha. A tela usa
-    **sub-abas**: **Dados Gerais**, **Endereço**, **Contato**, **Fiscal**,
-    **Bancário**, **Observações**. O cabeçalho traz **código**, **situação** e o
-    seletor de **Natureza**. Abas com pendência mostram um ponto de alerta.
+  - **Cadastro/edição** — **Novo fornecedor** ou clique numa linha. Os campos ficam
+    em **grupos numa única página** (rolagem): **Dados Gerais**, **Endereço**,
+    **Contato**, **Fiscal**, **Bancário**, **Observações**. O cabeçalho traz
+    **código**, **situação** e o seletor de **Natureza**. O **CNAE** é um campo de
+    busca (cadastro próprio em breve); o **CNPJ/CPF do favorecido** aplica máscara
+    automática (CPF até 11 dígitos, CNPJ acima).
   - **Endereço** é o **padrão de pessoa** (mesma seção do Funcionário): **Cidade**
     é um lookup do cadastro de Cidades que **preenche UF e País**.
 - **Validações**: **CNPJ numérico e alfanumérico** (novo modelo IN RFB 2.229/2024 —

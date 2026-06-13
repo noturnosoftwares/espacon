@@ -432,13 +432,18 @@ export function isValidStateRegistration(ie: string, uf: string): boolean;
 
 ---
 
-## 15. Layout — Sub-abas, Grupos e Ícones (DS §9.2)
+## 15. Layout — Grupos e Ícones (DS §9.2)
 
-Aba **Cadastro** dividida em sub-abas (a tela é grande). Cabeçalho do formulário:
-`RecordCodeBadge` + `StatusBadge` + seletor de **Natureza**.
+> **Decisão de UX (Glenio):** os campos ficam em **grupos numa única página** (rolagem),
+> **sem sub-abas** — sub-abas faziam a tela voltar ao topo/perder o foco ao retornar de uma
+> seleção (modo=select). O componente `FormTabs` permanece no Design System para outros usos.
+> **CNAE** é campo de **busca** (`LookupField`; cadastro próprio em breve, hoje "em breve").
+> **CNPJ/CPF do Favorecido** usa `DocumentField` (máscara automática: CPF até 11, CNPJ acima).
 
-| Sub-aba | Ícone | Conteúdo |
-|---------|-------|----------|
+Cabeçalho do formulário: `RecordCodeBadge` + `StatusBadge` + seletor de **Natureza**.
+
+| Grupo | Ícone | Conteúdo |
+|-------|-------|----------|
 | **Dados Gerais** | `pi-building` | Natureza, Razão/Nome*, Fantasia, CNPJ/CPF*, Insc. Estadual, Situação |
 | **Endereço** | `pi-map-marker` | `AddressSection` (Endereço*, Nº*, Complemento, Bairro*, Cidade* lookup, UF* auto, País auto, CEP*) |
 | **Contato** | `pi-phone` | Telefone, Fax, Celular, Nome do Contato, E-mail, Representante, Telefone do Representante |

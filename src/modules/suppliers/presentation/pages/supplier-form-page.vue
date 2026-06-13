@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
  * SupplierFormPage — cadastro/edição de fornecedor (rotas `/fornecedores/novo` e
- * `/fornecedores/:id`). Aba **Cadastro** dividida em **sub-abas** (`FormTabs`):
- * Dados Gerais, Endereço, Contato, Fiscal, Bancário, Observações (spec §15).
+ * `/fornecedores/:id`). Aba **Cadastro** em **grupos numa única página** (rolagem):
+ * Dados Gerais, Endereço, Contato, Fiscal, Bancário, Observações (spec §15) — sem
+ * sub-abas, para não perder o contexto/foco ao voltar de uma seleção (modo=select).
  *
  * Padrões: cabeçalho com código + situação + **Natureza** (genérico/PF/PJ, troca
  * com confirmação — N5); endereço/banco via seções compartilhadas (ADR-010);
@@ -29,7 +30,7 @@ import {
   ConfirmDialog,
   FormSection,
   FormSkeleton,
-  FormTabs,
+  LookupField,
   MaskedField,
   PageContainer,
   RecordCodeBadge,
@@ -79,7 +80,6 @@ const selection = useSelectionStore()
 
 const isEdit = computed(() => route.name === 'supplier-edit')
 const submitted = ref(false)
-const activeTab = ref('dados-gerais')
 const askingDelete = ref(false)
 const askingCancel = ref(false)
 const askingDiscard = ref(false)
@@ -277,20 +277,6 @@ const errors = computed(() => {
 })
 const invalidCount = computed(() => Object.values(errors.value).filter(Boolean).length)
 
-// Quais sub-abas têm pendência (ponto de alerta no FormTabs).
-const TAB_FIELDS: Record<string, string[]> = {
-  'dados-gerais': ['legalName', 'document', 'stateRegistration'],
-  endereco: ['street', 'number', 'district', 'city', 'zipCode'],
-  contato: ['email', 'mobile', 'phone'],
-  bancario: ['holderDocument'],
-}
-const errorTabKeys = computed(() => {
-  if (!submitted.value) return []
-  return Object.entries(TAB_FIELDS)
-    .filter(([, fields]) => fields.some((f) => errors.value[f]))
-    .map(([key]) => key)
-})
-
 const addressErrors = computed(() => ({
   street: errors.value.street,
   number: errors.value.number,
@@ -300,14 +286,15 @@ const addressErrors = computed(() => ({
 }))
 const bankErrors = computed(() => ({ holderDocument: errors.value.holderDocument }))
 
-const TABS = [
-  { key: 'dados-gerais', label: 'Dados Gerais', icon: 'pi-building' },
-  { key: 'endereco', label: 'Endereço', icon: 'pi-map-marker' },
-  { key: 'contato', label: 'Contato', icon: 'pi-phone' },
-  { key: 'fiscal', label: 'Fiscal', icon: 'pi-receipt' },
-  { key: 'bancario', label: 'Bancário', icon: 'pi-credit-card' },
-  { key: 'observacoes', label: 'Observações', icon: 'pi-align-left' },
-]
+/** CNAE é referência (terá cadastro próprio em breve) — lookup, não digitação. */
+function onOpenCnaeSearch(): void {
+  toast.add({
+    severity: 'info',
+    summary: 'Cadastro de CNAE',
+    detail: 'A pesquisa de CNAE abrirá o cadastro quando o módulo existir.',
+    life: 4000,
+  })
+}
 
 // ── Ações ───────────────────────────────────────────────────────────────────
 function notifySaveError(message: string): void {
@@ -316,8 +303,6 @@ function notifySaveError(message: string): void {
 async function onSave(): Promise<void> {
   submitted.value = true
   if (invalidCount.value > 0) {
-    // Leva o usuário à 1ª aba com pendência.
-    if (errorTabKeys.value.length) activeTab.value = errorTabKeys.value[0] as string
     notifySaveError(`Há ${invalidCount.value} campo(s) com pendência a corrigir.`)
     return
   }
@@ -444,184 +429,168 @@ function onCancelDiscard(): void {
       <FormSkeleton v-if="store.loading || (isEdit && !store.editing)" :sections="2" :fields="3" />
 
       <template v-else-if="store.editing">
-        <FormTabs v-model="activeTab" :tabs="TABS" :error-keys="errorTabKeys">
-          <!-- Dados Gerais -->
-          <template #dados-gerais>
-            <FormSection title="Identificação" icon="pi-building">
-              <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-                <BaseTextField
-                  v-model="legalName"
-                  :label="legalNameLabel(store.editing.type)"
-                  required
-                  :error="submitted ? errors.legalName : null"
-                />
-                <BaseTextField v-model="tradeName" :label="isGeneric ? 'Apelido' : 'Fantasia'" />
-                <template v-if="!isGeneric">
-                  <MaskedField
-                    v-model="document"
-                    :label="documentLabel(store.editing.type)"
-                    :mask="documentMask"
-                    searchable
-                    search-title="Consultar documento (em breve)"
-                    required
-                    :error="submitted ? errors.document : null"
-                    @search="toast.add({ severity: 'info', summary: 'Em breve', detail: 'Consulta de CNPJ será habilitada quando a API existir.', life: 4000 })"
-                  />
-                  <BaseTextField
-                    v-model="stateRegistration"
-                    :label="stateRegistrationLabel(store.editing.type)"
-                    :hint="store.editing.type === SupplierType.Company ? 'Aceita ISENTO ou vazio.' : undefined"
-                    :error="submitted ? errors.stateRegistration : null"
-                  />
-                </template>
-                <BaseSelect
-                  v-model="status"
-                  label="Situação"
-                  :options="STATUS_OPTIONS"
-                  option-label="label"
-                  option-value="value"
-                />
-              </div>
-              <p v-if="isGeneric" class="mt-3 text-sm text-content-muted">
-                Fornecedor <strong class="text-content-soft">genérico</strong> (DAS/DARF/DARE…): só
-                exige Razão e Situação; documento e demais dados ficam opcionais.
-              </p>
-            </FormSection>
-          </template>
-
-          <!-- Endereço -->
-          <template #endereco>
-            <FormSection title="Endereço" icon="pi-map-marker">
-              <AddressSection
-                :model-value="store.editing.address"
-                :errors="addressErrors"
-                :submitted="submitted"
-                :required="!isGeneric"
-                city-target="supplier-address"
-                city-focus-id="supplier-address-city"
-                @update:model-value="onAddressUpdate"
+        <!-- Grupos numa única página (sem sub-abas) — §15. -->
+        <FormSection title="Dados Gerais" icon="pi-building">
+          <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            <BaseTextField
+              v-model="legalName"
+              :label="legalNameLabel(store.editing.type)"
+              required
+              :error="submitted ? errors.legalName : null"
+            />
+            <BaseTextField v-model="tradeName" :label="isGeneric ? 'Apelido' : 'Fantasia'" />
+            <template v-if="!isGeneric">
+              <MaskedField
+                v-model="document"
+                :label="documentLabel(store.editing.type)"
+                :mask="documentMask"
+                searchable
+                search-title="Consultar documento (em breve)"
+                required
+                :error="submitted ? errors.document : null"
+                @search="toast.add({ severity: 'info', summary: 'Em breve', detail: 'Consulta de CNPJ será habilitada quando a API existir.', life: 4000 })"
               />
-            </FormSection>
-          </template>
-
-          <!-- Contato -->
-          <template #contato>
-            <FormSection title="Contato" icon="pi-phone">
-              <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-                <MaskedField v-model="phone" label="Telefone" mask="(99) 9999-9999?9" inputmode="tel" :error="submitted ? errors.phone : null" />
-                <MaskedField v-model="fax" label="Fax" mask="(99) 9999-9999" inputmode="tel" />
-                <MaskedField v-model="mobile" label="Celular" mask="(99) 99999-9999" inputmode="tel" :error="submitted ? errors.mobile : null" />
-                <BaseTextField v-model="contactName" label="Nome do Contato" />
-                <BaseTextField v-model="email" label="E-mail" type="email" inputmode="email" :error="submitted ? errors.email : null" />
-                <BaseTextField v-model="salesRepName" label="Representante (contato do fornecedor)" />
-                <MaskedField v-model="salesRepPhone" label="Telefone do Representante" mask="(99) 99999-9999" inputmode="tel" />
-              </div>
-            </FormSection>
-          </template>
-
-          <!-- Fiscal -->
-          <template #fiscal>
-            <FormSection title="Fiscal (Reforma Tributária)" icon="pi-receipt">
-              <p class="mb-4 text-sm text-content-muted">
-                Opcional por ora — classifica o fornecedor para a apuração CBS/IBS futura.
-              </p>
-              <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-                <BaseSelect
-                  :model-value="store.editing.fiscal.taxRegime"
-                  label="Regime tributário (CRT)"
-                  placeholder="Selecione"
-                  :options="TAX_REGIME_OPTIONS"
-                  option-label="label"
-                  option-value="value"
-                  @update:model-value="(v) => patchFiscal({ taxRegime: v })"
-                />
-                <BaseSelect
-                  :model-value="store.editing.fiscal.ieIndicator"
-                  label="Indicador de IE"
-                  placeholder="Selecione"
-                  :options="IE_INDICATOR_OPTIONS"
-                  option-label="label"
-                  option-value="value"
-                  @update:model-value="(v) => patchFiscal({ ieIndicator: v })"
-                />
-                <BaseTextField
-                  :model-value="store.editing.fiscal.municipalRegistration"
-                  label="Inscrição Municipal"
-                  @update:model-value="(v) => patchFiscal({ municipalRegistration: v })"
-                />
-                <BaseTextField
-                  :model-value="store.editing.fiscal.cnae"
-                  label="CNAE principal"
-                  inputmode="numeric"
-                  @update:model-value="(v) => patchFiscal({ cnae: v })"
-                />
-                <BaseTextField
-                  :model-value="store.editing.fiscal.suframa"
-                  label="SUFRAMA"
-                  @update:model-value="(v) => patchFiscal({ suframa: v })"
-                />
-                <BaseTextField
-                  v-if="store.editing.fiscal.isRuralProducer"
-                  :model-value="store.editing.fiscal.ruralProducerRegistration"
-                  label="Inscrição de Produtor Rural"
-                  @update:model-value="(v) => patchFiscal({ ruralProducerRegistration: v })"
-                />
-              </div>
-              <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                <label class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3">
-                  <ToggleSwitch
-                    :model-value="store.editing.fiscal.isIbsCbsTaxpayer"
-                    inputId="f-ibscbs"
-                    @update:model-value="(v) => patchFiscal({ isIbsCbsTaxpayer: v })"
-                  />
-                  <span class="text-sm text-content-soft">Contribuinte IBS/CBS</span>
-                </label>
-                <label class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3">
-                  <ToggleSwitch
-                    :model-value="store.editing.fiscal.optsForSimples"
-                    inputId="f-simples"
-                    @update:model-value="(v) => patchFiscal({ optsForSimples: v })"
-                  />
-                  <span class="text-sm text-content-soft">Optante Simples Nacional</span>
-                </label>
-                <label class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3">
-                  <ToggleSwitch
-                    :model-value="store.editing.fiscal.isRuralProducer"
-                    inputId="f-rural"
-                    @update:model-value="(v) => patchFiscal({ isRuralProducer: v })"
-                  />
-                  <span class="text-sm text-content-soft">Produtor rural</span>
-                </label>
-              </div>
-            </FormSection>
-          </template>
-
-          <!-- Bancário -->
-          <template #bancario>
-            <FormSection title="Dados Bancários" icon="pi-credit-card">
-              <BankAccountSection
-                :model-value="store.editing.bankAccount"
-                :errors="bankErrors"
-                :submitted="submitted"
-                show-holder
-                @update:model-value="onBankUpdate"
+              <BaseTextField
+                v-model="stateRegistration"
+                :label="stateRegistrationLabel(store.editing.type)"
+                :hint="store.editing.type === SupplierType.Company ? 'Aceita ISENTO ou vazio.' : undefined"
+                :error="submitted ? errors.stateRegistration : null"
               />
-            </FormSection>
-          </template>
+            </template>
+            <BaseSelect
+              v-model="status"
+              label="Situação"
+              :options="STATUS_OPTIONS"
+              option-label="label"
+              option-value="value"
+            />
+          </div>
+          <p v-if="isGeneric" class="mt-3 text-sm text-content-muted">
+            Fornecedor <strong class="text-content-soft">genérico</strong> (DAS/DARF/DARE…): só
+            exige Razão e Situação; documento e demais dados ficam opcionais.
+          </p>
+        </FormSection>
 
-          <!-- Observações -->
-          <template #observacoes>
-            <FormSection title="Observações" icon="pi-align-left">
-              <Textarea
-                v-model="notes"
-                rows="5"
-                auto-resize
-                class="w-full rounded-field border border-line-subtle bg-surface-1 px-3.5 py-2.5 text-sm text-content outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20"
-                placeholder="Observações sobre o fornecedor…"
+        <FormSection title="Endereço" icon="pi-map-marker">
+          <AddressSection
+            :model-value="store.editing.address"
+            :errors="addressErrors"
+            :submitted="submitted"
+            :required="!isGeneric"
+            city-target="supplier-address"
+            city-focus-id="supplier-address-city"
+            @update:model-value="onAddressUpdate"
+          />
+        </FormSection>
+
+        <FormSection title="Contato" icon="pi-phone">
+          <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            <MaskedField v-model="phone" label="Telefone" mask="(99) 9999-9999?9" inputmode="tel" :error="submitted ? errors.phone : null" />
+            <MaskedField v-model="fax" label="Fax" mask="(99) 9999-9999" inputmode="tel" />
+            <MaskedField v-model="mobile" label="Celular" mask="(99) 99999-9999" inputmode="tel" :error="submitted ? errors.mobile : null" />
+            <BaseTextField v-model="contactName" label="Nome do Contato" />
+            <BaseTextField v-model="email" label="E-mail" type="email" inputmode="email" :error="submitted ? errors.email : null" />
+            <BaseTextField v-model="salesRepName" label="Representante (contato do fornecedor)" />
+            <MaskedField v-model="salesRepPhone" label="Telefone do Representante" mask="(99) 99999-9999" inputmode="tel" />
+          </div>
+        </FormSection>
+
+        <FormSection title="Fiscal (Reforma Tributária)" icon="pi-receipt">
+          <p class="mb-4 text-sm text-content-muted">
+            Opcional por ora — classifica o fornecedor para a apuração CBS/IBS futura.
+          </p>
+          <div class="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            <BaseSelect
+              :model-value="store.editing.fiscal.taxRegime"
+              label="Regime tributário (CRT)"
+              placeholder="Selecione"
+              :options="TAX_REGIME_OPTIONS"
+              option-label="label"
+              option-value="value"
+              @update:model-value="(v) => patchFiscal({ taxRegime: v })"
+            />
+            <BaseSelect
+              :model-value="store.editing.fiscal.ieIndicator"
+              label="Indicador de IE"
+              placeholder="Selecione"
+              :options="IE_INDICATOR_OPTIONS"
+              option-label="label"
+              option-value="value"
+              @update:model-value="(v) => patchFiscal({ ieIndicator: v })"
+            />
+            <BaseTextField
+              :model-value="store.editing.fiscal.municipalRegistration"
+              label="Inscrição Municipal"
+              @update:model-value="(v) => patchFiscal({ municipalRegistration: v })"
+            />
+            <!-- CNAE: referência (terá cadastro próprio) → lookup, não digitação. -->
+            <LookupField
+              :model-value="store.editing.fiscal.cnae || null"
+              label="CNAE principal"
+              placeholder="Pesquisar CNAE…"
+              :format-selected="() => store.editing?.fiscal.cnae ?? ''"
+              @open="onOpenCnaeSearch"
+              @clear="patchFiscal({ cnae: '' })"
+            />
+            <BaseTextField
+              :model-value="store.editing.fiscal.suframa"
+              label="SUFRAMA"
+              @update:model-value="(v) => patchFiscal({ suframa: v })"
+            />
+            <BaseTextField
+              v-if="store.editing.fiscal.isRuralProducer"
+              :model-value="store.editing.fiscal.ruralProducerRegistration"
+              label="Inscrição de Produtor Rural"
+              @update:model-value="(v) => patchFiscal({ ruralProducerRegistration: v })"
+            />
+          </div>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <label class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3">
+              <ToggleSwitch
+                :model-value="store.editing.fiscal.isIbsCbsTaxpayer"
+                inputId="f-ibscbs"
+                @update:model-value="(v) => patchFiscal({ isIbsCbsTaxpayer: v })"
               />
-            </FormSection>
-          </template>
-        </FormTabs>
+              <span class="text-sm text-content-soft">Contribuinte IBS/CBS</span>
+            </label>
+            <label class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3">
+              <ToggleSwitch
+                :model-value="store.editing.fiscal.optsForSimples"
+                inputId="f-simples"
+                @update:model-value="(v) => patchFiscal({ optsForSimples: v })"
+              />
+              <span class="text-sm text-content-soft">Optante Simples Nacional</span>
+            </label>
+            <label class="flex items-center gap-3 rounded-field border border-line-subtle bg-surface-2/40 px-4 py-3">
+              <ToggleSwitch
+                :model-value="store.editing.fiscal.isRuralProducer"
+                inputId="f-rural"
+                @update:model-value="(v) => patchFiscal({ isRuralProducer: v })"
+              />
+              <span class="text-sm text-content-soft">Produtor rural</span>
+            </label>
+          </div>
+        </FormSection>
+
+        <FormSection title="Dados Bancários" icon="pi-credit-card">
+          <BankAccountSection
+            :model-value="store.editing.bankAccount"
+            :errors="bankErrors"
+            :submitted="submitted"
+            show-holder
+            @update:model-value="onBankUpdate"
+          />
+        </FormSection>
+
+        <FormSection title="Observações" icon="pi-align-left">
+          <Textarea
+            v-model="notes"
+            rows="5"
+            auto-resize
+            class="w-full rounded-field border border-line-subtle bg-surface-1 px-3.5 py-2.5 text-sm text-content outline-none transition-[color,border-color,box-shadow] duration-[var(--duration-fast)] hover:border-line focus:border-accent focus:ring-2 focus:ring-accent/20"
+            placeholder="Observações sobre o fornecedor…"
+          />
+        </FormSection>
       </template>
     </PageContainer>
 
