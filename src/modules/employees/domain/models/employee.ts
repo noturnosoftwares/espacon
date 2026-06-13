@@ -1,13 +1,17 @@
-import { type Address, emptyAddress } from '@/shared/models'
+import {
+  type BankAccount,
+  type PersonAddress,
+  emptyBankAccount,
+  emptyPersonAddress,
+  toBankAccountType,
+} from '@/shared/domain'
 import { normalizeEmail, onlyDigits } from '@/shared/extensions'
 import { EmployeeStatus, toEmployeeStatus } from '../enums/employee-status'
-import { type BankAccount, emptyBankAccount } from './bank-account'
-import { toBankAccountType } from '../enums/bank-account-type'
 
 /**
  * Employee — funcionário (model raiz do módulo, ver spec `employee-registration`
  * §9.2). Model **imutável** (use `copyEmployee`), em inglês, com `fromJson`/`toJson`.
- * Usa o `Address` **compartilhado** (decisão P5) e o `BankAccount` do módulo.
+ * Usa o `PersonAddress` e o `BankAccount` **compartilhados** (`shared/domain`, ADR-010).
  *
  * Notas de contrato:
  * - CPF e telefones são guardados **só com dígitos** (a UI formata).
@@ -29,7 +33,7 @@ export interface Employee {
   naturalCityId: number | null
   naturalCityName: string
   naturalUf: string
-  address: Address
+  address: PersonAddress
   companyPhone: string
   personalPhone: string
   email: string
@@ -131,6 +135,9 @@ export function employeeFromJson(json: EmployeeJson): Employee {
       bank: json.banco ?? '',
       branch: json.agencia ?? '',
       number: json.conta ?? '',
+      // Funcionário não usa favorecido (campos compartilhados, opcionais — ADR-010).
+      holderName: '',
+      holderDocument: '',
     },
   }
 }
@@ -197,7 +204,7 @@ export function emptyEmployee(): Employee {
     naturalCityId: null,
     naturalCityName: '',
     naturalUf: '',
-    address: emptyAddress(),
+    address: emptyPersonAddress(),
     companyPhone: '',
     personalPhone: '',
     email: '',

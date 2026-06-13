@@ -39,7 +39,14 @@ import {
   StickyActionBar,
   useAppToast,
 } from '@/shared/widgets'
-import { type Address, copyAddress } from '@/shared/models'
+import {
+  type BankAccount,
+  BankAccountType,
+  type PersonAddress,
+  bankAccountTypeLabel,
+  copyBankAccount,
+  copyPersonAddress,
+} from '@/shared/domain'
 import {
   isAdult,
   isCepWithinUf,
@@ -55,13 +62,9 @@ import {
 } from '@/shared/extensions'
 import { useEmployeesStore } from '../stores'
 import {
-  type BankAccount,
-  BankAccountType,
   type Employee,
   EMPLOYEE_STATUSES,
   EmployeeStatus,
-  bankAccountTypeLabel,
-  copyBankAccount,
   employeeStatusLabel,
   employeeStatusSeverity,
 } from '../../domain/models'
@@ -131,8 +134,8 @@ function text(key: keyof Employee) {
     set: (value) => store.patch({ [key]: value } as unknown as Partial<Employee>),
   })
 }
-function patchAddress(changes: Partial<Address>): void {
-  if (store.editing) store.patch({ address: copyAddress(store.editing.address, changes) })
+function patchAddress(changes: Partial<PersonAddress>): void {
+  if (store.editing) store.patch({ address: copyPersonAddress(store.editing.address, changes) })
 }
 function patchBank(changes: Partial<BankAccount>): void {
   if (store.editing) store.patch({ bankAccount: copyBankAccount(store.editing.bankAccount, changes) })

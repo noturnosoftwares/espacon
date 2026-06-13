@@ -1,4 +1,5 @@
-import { BankAccountType, EmployeeStatus } from '../../domain/models'
+import { BankAccountType } from '@/shared/domain'
+import { EmployeeStatus } from '../../domain/models'
 import type { EmployeeJson } from '../../domain/models'
 
 /**

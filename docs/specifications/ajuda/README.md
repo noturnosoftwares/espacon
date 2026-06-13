@@ -201,7 +201,53 @@ Conhecimento).
   não-futura; **idade ≥ 18** se o nascimento for informado; **demissão**
   obrigatória quando a situação é **Demitido**. Comissão é **percentual (%)**.
 - **Permissões**: recurso **Funcionário** (`ADM-003`) no catálogo, com as 9 ações.
-- **Impactos**: módulo `src/modules/employees`; `Address` compartilhado em
-  `shared/models`; widgets `RecordCodeBadge`/`SearchLookupField` em `shared/widgets`;
+- **Impactos**: módulo `src/modules/employees`; `PersonAddress`/`BankAccount`
+  compartilhados em `shared/domain` (ADR-010); widgets em `shared/widgets`;
   validações em `shared/extensions`.
 - **Especificação**: `docs/specifications/employees/employee-registration.md`.
+
+---
+
+## Fornecedores
+
+- **O que faz**: cadastra os **fornecedores** da empresa — a base de **Contas a
+  Pagar**, **Ordens de Compra** e **Notas Fiscais de Compra/Devolução** (e da
+  apuração fiscal CBS/IBS futura). Fornecedor referenciado **nunca é apagado
+  fisicamente**: é **inativado**.
+- **Onde acessar**: menu **Compra → Fornecedor** (rota `/fornecedores`).
+- **Natureza** (quando usar cada uma):
+  - **Pessoa Jurídica** — empresa com **CNPJ** e (opcional) Inscrição Estadual.
+  - **Pessoa Física** — pessoa com **CPF** e RG.
+  - **Genérico** — **sem dados da pessoa**, para **guias/recolhimentos** (DAS,
+    DARF, DARE, taxas). Exige só **Razão (nome)** e **Situação**; o documento fica
+    **vazio**. Trocar a natureza com dados preenchidos pede confirmação.
+- **Como usar**:
+  - **Pesquisa** — abre com um **painel de totalizadores** (Total, Ativos,
+    Inativos, Jurídica, Física, Genéricos) acima da busca. Pesquise por **código,
+    razão/fantasia ou documento** (Enter). Filtros de **Situação** e **Natureza**
+    refinam a lista na hora; **scroll infinito** (lotes de 30). O grid mostra
+    **avatar + nome**, documento, telefone, **Cidade/UF** e **Situação**.
+  - **Cadastro/edição** — **Novo fornecedor** ou clique numa linha. A tela usa
+    **sub-abas**: **Dados Gerais**, **Endereço**, **Contato**, **Fiscal**,
+    **Bancário**, **Observações**. O cabeçalho traz **código**, **situação** e o
+    seletor de **Natureza**. Abas com pendência mostram um ponto de alerta.
+  - **Endereço** é o **padrão de pessoa** (mesma seção do Funcionário): **Cidade**
+    é um lookup do cadastro de Cidades que **preenche UF e País**.
+- **Validações**: **CNPJ numérico e alfanumérico** (novo modelo IN RFB 2.229/2024 —
+  ADR-009); **CPF**; **Inscrição Estadual** opcional (aceita **"ISENTO"** ou vazio;
+  se houver valor numa PJ, valida por UF); **CEP coerente com a UF**; **celular**
+  (DDD + 9 dígitos); **e-mail** válido e **sempre em minúsculas**. A **unicidade do
+  documento** é conferida pelo backend.
+- **Dados fiscais (Reforma Tributária)**: regime (CRT), indicador de IE,
+  contribuinte IBS/CBS, inscrição municipal, CNAE, SUFRAMA, optante Simples,
+  produtor rural — **opcionais por ora**; passam a obrigatórios quando o módulo de
+  apuração CBS/IBS existir.
+- **Situação e exclusão**: **Ativo/Inativo**. "Inativar" remove o fornecedor dos
+  seletores de novos lançamentos, **preservando** os registros que já o referenciam
+  (Contas a Pagar/Compras). Sempre com confirmação.
+- **Permissões**: recurso **Fornecedor** (`COM-008`) no catálogo, com as 9 ações.
+- **Impactos**: módulo `src/modules/suppliers`; `PersonAddress`/`BankAccount` e as
+  seções `AddressSection`/`BankAccountSection` em `shared` (ADR-010); `cnpj-ext`
+  alfanumérico e `state-registration-ext` em `shared/extensions` (ADR-009); reusa o
+  módulo `locations` (Cidade). Relatório/Gráfico ficam **"em breve"**.
+- **Especificação**: `docs/specifications/suppliers/supplier-registration.md`.

@@ -181,6 +181,27 @@ const router = createRouter({
           component: () => import('@/modules/employees/presentation/pages/employee-form-page.vue'),
           meta: { requiresAuth: true },
         },
+
+        // Fornecedores (Comercial) — base de Contas a Pagar/Compras/NF-e (spec
+        // `suppliers/supplier-registration`). Rota plana `/fornecedores`.
+        {
+          path: '/fornecedores',
+          name: 'suppliers',
+          component: () => import('@/modules/suppliers/presentation/pages/suppliers-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/fornecedores/novo',
+          name: 'supplier-new',
+          component: () => import('@/modules/suppliers/presentation/pages/supplier-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: '/fornecedores/:id',
+          name: 'supplier-edit',
+          component: () => import('@/modules/suppliers/presentation/pages/supplier-form-page.vue'),
+          meta: { requiresAuth: true },
+        },
       ],
     },
   ],

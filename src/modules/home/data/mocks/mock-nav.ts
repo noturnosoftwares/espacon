@@ -92,8 +92,10 @@ export const navGroups: NavGroup[] = [
     id: 'compra',
     label: 'Compra',
     icon: 'shopping-cart',
-    status: 'soon',
-    items: [soon('fornecedor', 'Fornecedor', 'box')],
+    status: 'available',
+    items: [
+      { id: 'fornecedor', label: 'Fornecedor', icon: 'box', route: '/fornecedores', status: 'available' },
+    ],
   },
   {
     id: 'frota',

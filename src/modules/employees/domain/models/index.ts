@@ -1,4 +1,2 @@
 export * from '../enums/employee-status'
-export * from '../enums/bank-account-type'
-export * from './bank-account'
 export * from './employee'

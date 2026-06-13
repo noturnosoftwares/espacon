@@ -24,6 +24,7 @@ export const MOCK_PERMISSION_CATALOG: PermissionCatalogEntryJson[] = [
   { code: 'COM-006', label: 'Franquia', section: 'Comercial' },
   // Recurso não-menu (ação de botão): só faz sentido "novo" e "remoto".
   { code: 'COM-007', label: 'Desbloquear Cliente', section: 'Comercial', supportedActions: ['create', 'remote'] },
+  { code: 'COM-008', label: 'Fornecedor', section: 'Comercial' },
 
   // Atendimento
   { code: 'ATD-001', label: 'Atendimento', section: 'Atendimento' },
